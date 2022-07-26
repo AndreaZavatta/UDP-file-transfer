@@ -15,13 +15,15 @@ file_prefix = "serverFiles/"
 print("The server is ready to receive.")
 while True:
     command, clientAddress = serverSocket.recvfrom(2048)
-    commandName, fileName = command.decode().split(" ")
+    commandName = command.decode().split(" ")[0]
     match commandName:
         case 'list':
-            serverSocket.sendto(os.listdir(file_prefix), clientAddress)
+            serverSocket.sendto(os.listdir(file_prefix).__str__().encode(), clientAddress)
         case 'get':
+            fileName = command.decode().split(" ")[1]
             break
         case 'put':
+            fileName = command.decode().split(" ")[1]
             create_file()
         case 'quit':
             serverSocket.close()
