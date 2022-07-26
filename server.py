@@ -1,3 +1,4 @@
+import os
 from socket import *
 
 
@@ -10,13 +11,14 @@ def create_file():
 serverPort = 12000
 serverSocket = socket(AF_INET, SOCK_DGRAM)
 serverSocket.bind(('', serverPort))
-print("The server is ready to receive. Fuck you nigga")
+file_prefix = "serverFiles/"
+print("The server is ready to receive.")
 while True:
     command, clientAddress = serverSocket.recvfrom(2048)
     commandName, fileName = command.decode().split(" ")
     match commandName:
         case 'list':
-            break
+            serverSocket.sendto(os.listdir(file_prefix), clientAddress)
         case 'get':
             break
         case 'put':
