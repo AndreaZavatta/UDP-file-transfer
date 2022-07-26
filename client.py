@@ -6,29 +6,30 @@ def send_message(msg):
 
 
 def send_file(file_name):
-    f = open(file_name, 'rb')
-    clientSocket.sendto(f, (serverName, serverPort))
-    f.close()
+    fi = open(file_name, 'rb')
+    clientSocket.sendto(fi, (serverName, serverPort))
+    fi.close()
 
 
 serverName = 'localhost'
 serverPort = 12000
 clientSocket = socket(AF_INET, SOCK_DGRAM)
-file_prefix = 'files/'
+file_prefix = 'clientFiles/'
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
-    match message:
+    command, filename = message.split(' ')
+    match command:
         case 'list':
             send_message('list')
             file_list = clientSocket.recv(1024)
             print(file_list.decode())
         case 'get':
-            send_message('get')
-            filename = input('Input the filename: ')
-            send_message(filename)
+            send_message(message)
+            file = clientSocket.recv(1024)
+            f = open(file_prefix + filename, 'wb')
+            f.write(file.strip())
         case 'put':
-            send_message('put')
-            filename = input('Input the filename: ')
+            send_message(message)
             send_file(file_prefix + filename)
         case 'quit':
             break
