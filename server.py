@@ -5,13 +5,16 @@ from socket import *
 
 
 def receive_file(fn):
+    number_of_packets = 1
+    packets = []
+    for i in range(number_of_packets):
+        data = server_socket.recv(BUFFER_SIZE)
+        content = pickle.loads(data)
+        packets.append(content)
+        packets.sort(key=lambda x: x['pos'])
     with open(fn, 'wb') as file_io:
-        while True:
-            data = server_socket.recv(BUFFER_SIZE)
-            if data.strip().decode() == 'EOF':
-                break
-            content = pickle.loads(data)
-            file_io.write(content)
+        for packet in packets:
+            file_io.write(packet['content'])
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)
