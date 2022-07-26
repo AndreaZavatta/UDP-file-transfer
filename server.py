@@ -5,15 +5,13 @@ from socket import *
 
 
 def receive_file(fn):
-    with open(fn, 'wb') as file:
+    with open(fn, 'wb') as file_io:
         while True:
             data = server_socket.recv(BUFFER_SIZE)
+            if data.strip().decode() == 'EOF':
+                break
             content = pickle.loads(data)
-            print(data.decode())
-            if content == 'EOF':
-                file.close()
-                return
-            file.write(data)
+            file_io.write(content)
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)
@@ -21,11 +19,11 @@ server_socket.bind(('', SERVER_PORT))
 file_prefix = "serverFiles/"
 print("The server is ready to receive.")
 while True:
-    command, clientAddress = server_socket.recvfrom(2048)
+    command, client_address = server_socket.recvfrom(2048)
     command_name = command.decode().split(" ")[0]
     match command_name:
         case 'list':
-            server_socket.sendto(os.listdir(file_prefix).__str__().encode(), clientAddress)
+            server_socket.sendto(os.listdir(file_prefix).__str__().encode(), client_address)
         case 'get':
             file_name = command.decode().split(" ")[1]
             break
