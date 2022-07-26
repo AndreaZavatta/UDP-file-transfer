@@ -27,7 +27,7 @@ def create_packet_list(file_path):
 
 def send_file(file_path):
     packet_list = create_packet_list(file_path)
-    client_socket.sendto(str(packet_list.__len__()).encode(), (SERVER_NAME, SERVER_PORT))
+    client_socket.sendto(number_of_packets(file_path).__str__().encode(), (SERVER_NAME, SERVER_PORT))
     sleep(1)
     for packet in packet_list:
         client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
