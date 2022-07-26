@@ -1,3 +1,4 @@
+import os
 from socket import *
 from settings import *
 import pickle
@@ -7,17 +8,31 @@ def send_message(msg):
     client_socket.sendto(msg.encode(), (SERVER_NAME, SERVER_PORT))
 
 
-def send_file(file_path):
+def number_of_packets(file_path):
     with open(file_path, 'rb') as file_io:
-        packages = file_io.read().__len__() // BUFFER_SIZE + 1
+        return file_io.read().__len__() // BUFFER_SIZE + 1
+
+
+def create_packet_list(file_path):
+    with open(file_path, 'rb') as file_io:
+        packages = number_of_packets(file_path)
+        packet_list = []
         for i in range(packages):
             msg = file_io.read(BUFFER_SIZE)
-            client_socket.sendto(pickle.dumps(msg), (SERVER_NAME, SERVER_PORT))
-        client_socket.sendto(b'EOF', (SERVER_NAME, SERVER_PORT))
+            packet_list.append({'pos': i, 'content': msg})
+        return packet_list
+
+
+def send_file(file_path):
+    end = 'EOF'
+    packet_list = create_packet_list(file_path)
+    for packet in packet_list:
+        client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
+    client_socket.sendto(end.encode(), (SERVER_NAME, SERVER_PORT))
 
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
-file_prefix = 'clientFiles/'
+file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
     command = message.split(' ')[0]
