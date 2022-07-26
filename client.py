@@ -1,5 +1,6 @@
 from socket import *
 from settings import *
+import pickle
 
 
 def send_message(msg):
@@ -11,7 +12,7 @@ def send_file(file_path):
         packages = file_io.read().__len__() // BUFFER_SIZE + 1
         for i in range(packages):
             msg = file_io.read(BUFFER_SIZE)
-            client_socket.sendto(msg, (SERVER_NAME, SERVER_PORT))
+            client_socket.sendto(pickle.dumps(msg), (SERVER_NAME, SERVER_PORT))
         client_socket.sendto(b'EOF', (SERVER_NAME, SERVER_PORT))
 
 
