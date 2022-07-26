@@ -1,5 +1,7 @@
 import os
 from socket import *
+from time import sleep
+
 from settings import *
 import pickle
 
@@ -24,11 +26,11 @@ def create_packet_list(file_path):
 
 
 def send_file(file_path):
-    end = 'EOF'
     packet_list = create_packet_list(file_path)
+    client_socket.sendto(packet_list.__len__(), (SERVER_NAME, SERVER_PORT))
+    sleep(1)
     for packet in packet_list:
         client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
-    client_socket.sendto(end.encode(), (SERVER_NAME, SERVER_PORT))
 
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
