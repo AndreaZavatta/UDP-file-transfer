@@ -30,16 +30,12 @@ def receive_file(fn):
     # tries to collect packets until the number of collected packets is equal to the original number of packets
     while True:
         failed_attempts = 0
-        i = 0
-        while i < num:
-            try:
-                data = server_socket.recv(BUFFER_SIZE)
-                content = pickle.loads(data)
-                packets.append(content)
-                print('Received packet %s' % content['pos'])
-                i += 1
-            except error:
-                pass
+        print(num)
+        for i in range(num):
+            data = server_socket.recv(BUFFER_SIZE)
+            content = pickle.loads(data)
+            packets.append(content)
+            print('Received packet %s' % content['pos'])
         # re-orders the list based on the initial position of the packets
         packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
@@ -58,7 +54,7 @@ def receive_file(fn):
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)
-server_socket.settimeout(2.00)
+server_socket.settimeout(None)
 server_socket.bind(('', SERVER_PORT))
 file_prefix = os.getcwd() + "\\serverFiles\\"
 print("The server is ready to receive.")
@@ -78,7 +74,6 @@ while True:
                 sleep(1)
                 receive_file(file_prefix + file_name)
                 f = open(file_prefix + file_name, "r")
-                print(f.read())
             case 'quit':
                 server_socket.close()
     except error:
