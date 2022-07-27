@@ -29,14 +29,17 @@ def receive_file(fn):
     packets = []
     # tries to collect packets until the number of collected packets is equal to the original number of packets
     while True:
-        for i in range(num):
+        failed_attempts = 0
+        i = 0
+        while i < num:
             try:
                 data = server_socket.recv(BUFFER_SIZE)
                 content = pickle.loads(data)
                 packets.append(content)
                 print('Received packet %s' % content['pos'])
+                i += 1
             except error:
-                i -= 1
+                pass
         # re-orders the list based on the initial position of the packets
         packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
@@ -44,8 +47,12 @@ def receive_file(fn):
             server_socket.sendto('ACK'.encode(), client_address)
             break
         else:
-            packets.clear()
-            server_socket.sendto('NACK'.encode(), client_address)
+            failed_attempts += 1
+            if failed_attempts < MAX_FAILED_ATTEMPTS:
+                packets.clear()
+                server_socket.sendto('RETRY'.encode(), client_address)
+            else:
+                server_socket.sendto('NACK'.encode(), client_address)
     # writes gathered data onto the new file of name 'fn'
     write_on_file(fn, packets)
 
