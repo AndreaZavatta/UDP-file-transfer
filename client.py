@@ -1,6 +1,7 @@
 import os
 import pickle
 from socket import *
+from time import sleep
 
 from settings import *
 
@@ -11,7 +12,7 @@ def send_message(msg):
 
 def number_of_packets(file_path):
     with open(file_path, 'rb') as file_io:
-        return file_io.read().__len__() // BUFFER_SIZE + 1
+        return file_io.read().__len__() // UPLOAD_SIZE + 1
 
 
 def create_packet_list(file_path):
@@ -19,7 +20,7 @@ def create_packet_list(file_path):
         packages = number_of_packets(file_path)
         packet_list = []
         for i in range(packages):
-            msg = file_io.read(BUFFER_SIZE)
+            msg = file_io.read(UPLOAD_SIZE)
             packet_list.append({'pos': i, 'data': msg})
         return packet_list
 
@@ -37,7 +38,6 @@ def send_number_of_packets(number):
 
 
 def send_file(file_path):
-    failed_attempts = 0
     packet_list = create_packet_list(file_path)
     send_number_of_packets(packet_list.__len__())
     upload_packet_list(packet_list)
@@ -46,13 +46,11 @@ def send_file(file_path):
             response = client_socket.recv(BUFFER_SIZE)
             if response.decode() == 'ACK':
                 break
+            elif response.decode() == 'RETRY':
+                upload_packet_list(packet_list)
             elif response.decode() == 'NACK':
-                if failed_attempts < MAX_FAILED_ATTEMPTS:
-                    failed_attempts += 1
-                    upload_packet_list(packet_list)
-                else:
-                    print("Failed to upload file.")
-                    break
+                print('File transfer failed')
+                break
         except error:
             pass
 
@@ -60,6 +58,7 @@ def send_file(file_path):
 def upload_packet_list(packet_list):
     for packet in packet_list:
         client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
+        sleep(0.1)
 
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
