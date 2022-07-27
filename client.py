@@ -25,14 +25,15 @@ def create_packet_list(file_path):
 
 
 def send_number_of_packets(number):
+    num = "%s" % number
     while True:
         try:
-            client_socket.sendto(number.__str__().encode(), (SERVER_NAME, SERVER_PORT))
+            client_socket.sendto(num.encode(), (SERVER_NAME, SERVER_PORT))
             response = client_socket.recv(BUFFER_SIZE)
             if response.decode() == 'ACK':
                 break
         except error:
-            client_socket.sendto(number.__str__().encode(), (SERVER_NAME, SERVER_PORT))
+            client_socket.sendto(num.encode(), (SERVER_NAME, SERVER_PORT))
 
 
 def send_file(file_path):
@@ -43,6 +44,7 @@ def send_file(file_path):
 
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
+client_socket.settimeout(2.00)
 file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
