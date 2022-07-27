@@ -38,22 +38,23 @@ def send_number_of_packets(number):
 
 def send_file(file_path):
     failed_attempts = 0
-    success = False
-    while failed_attempts < MAX_FAILED_ATTEMPTS and not success:
-        packet_list = create_packet_list(file_path)
-        send_number_of_packets(packet_list.__len__())
-        upload_packet_list(packet_list)
-        while True:
-            try:
-                response = client_socket.recv(BUFFER_SIZE)
-                if response.decode() == 'ACK':
-                    success = True
-                    break
-                elif response.decode() == 'NACK':
+    packet_list = create_packet_list(file_path)
+    send_number_of_packets(packet_list.__len__())
+    upload_packet_list(packet_list)
+    while True:
+        try:
+            response = client_socket.recv(BUFFER_SIZE)
+            if response.decode() == 'ACK':
+                break
+            elif response.decode() == 'NACK':
+                if failed_attempts < MAX_FAILED_ATTEMPTS:
                     failed_attempts += 1
+                    upload_packet_list(packet_list)
+                else:
+                    print("Failed to upload file.")
                     break
-            except error:
-                pass
+        except error:
+            pass
 
 
 def upload_packet_list(packet_list):

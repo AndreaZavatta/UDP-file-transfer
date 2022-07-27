@@ -30,11 +30,15 @@ def receive_file(fn):
     # tries to collect packets until the number of collected packets is equal to the original number of packets
     while True:
         for i in range(num):
-            data = server_socket.recv(BUFFER_SIZE)
-            content = pickle.loads(data)
-            packets.append(content)
-            # re-orders the list based on the initial position of the packets
-            packets.sort(key=lambda x: x['pos'])
+            try:
+                data = server_socket.recv(BUFFER_SIZE)
+                content = pickle.loads(data)
+                packets.append(content)
+                print('Received packet %s' % content['pos'])
+            except error:
+                i -= 1
+        # re-orders the list based on the initial position of the packets
+        packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
         if packets.__len__() == num:
             server_socket.sendto('ACK'.encode(), client_address)
