@@ -1,9 +1,8 @@
 import os
+import pickle
 from socket import *
-from time import sleep
 
 from settings import *
-import pickle
 
 
 def send_message(msg):
@@ -21,14 +20,24 @@ def create_packet_list(file_path):
         packet_list = []
         for i in range(packages):
             msg = file_io.read(BUFFER_SIZE)
-            packet_list.append(msg)
+            packet_list.append({'pos': i, 'data': msg})
         return packet_list
+
+
+def send_number_of_packets(number):
+    while True:
+        try:
+            client_socket.sendto(number.__str__().encode(), (SERVER_NAME, SERVER_PORT))
+            response = client_socket.recv(BUFFER_SIZE)
+            if response.decode() == 'ACK':
+                break
+        except error:
+            client_socket.sendto(number.__str__().encode(), (SERVER_NAME, SERVER_PORT))
 
 
 def send_file(file_path):
     packet_list = create_packet_list(file_path)
-    client_socket.sendto(number_of_packets(file_path).__str__().encode(), (SERVER_NAME, SERVER_PORT))
-    sleep(1)
+    send_number_of_packets(number_of_packets(file_path))
     for packet in packet_list:
         client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
 
