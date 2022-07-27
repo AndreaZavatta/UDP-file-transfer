@@ -18,6 +18,12 @@ def get_number_of_packets():
             pass
 
 
+def write_on_file(fn, packets):
+    with open(fn, 'wb') as file_io:
+        for packet in packets:
+            file_io.write(packet['data'])
+
+
 def receive_file(fn):
     # list of packets
     packets = []
@@ -33,10 +39,11 @@ def receive_file(fn):
         if packets.__len__() == num:
             server_socket.sendto('ACK'.encode(), client_address)
             break
+        else:
+            packets.clear()
+            server_socket.sendto('NACK'.encode(), client_address)
     # writes gathered data onto the new file of name 'fn'
-    with open(fn, 'wb') as file_io:
-        for packet in packets:
-            file_io.write(packet['data'])
+    write_on_file(fn, packets)
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)
