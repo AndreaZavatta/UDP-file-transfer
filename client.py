@@ -21,7 +21,7 @@ def create_packet_list(file_path):
         packet_list = []
         for i in range(packages):
             msg = file_io.read(BUFFER_SIZE)
-            packet_list.append({'pos': i, 'content': msg})
+            packet_list.append(msg)
         return packet_list
 
 
