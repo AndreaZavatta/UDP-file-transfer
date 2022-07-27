@@ -2,7 +2,6 @@ import os
 import pickle
 from socket import *
 from time import sleep
-
 from settings import *
 
 
@@ -10,6 +9,8 @@ def get_number_of_packets():
     while True:
         try:
             data = server_socket.recv(BUFFER_SIZE)
+            # acknowledges that the number of packets info has arrived
+            server_socket.sendto('ACK'.encode(), client_address)
             if data:
                 n = int(data.decode())
                 return n
@@ -18,13 +19,21 @@ def get_number_of_packets():
 
 
 def receive_file(fn):
-    server_socket.sendto('ACK'.encode(), client_address)
+    # list of packets
     packets = []
-    for i in range(num):
-        data = server_socket.recv(BUFFER_SIZE)
-        content = pickle.loads(data)
-        packets.append(content)
-        packets.sort(key=lambda x: x['pos'])
+    # tries to collect packets until the number of collected packets is equal to the original number of packets
+    while True:
+        for i in range(num):
+            data = server_socket.recv(BUFFER_SIZE)
+            content = pickle.loads(data)
+            packets.append(content)
+            # re-orders the list based on the initial position of the packets
+            packets.sort(key=lambda x: x['pos'])
+        # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
+        if packets.__len__() == num:
+            server_socket.sendto('ACK'.encode(), client_address)
+            break
+    # writes gathered data onto the new file of name 'fn'
     with open(fn, 'wb') as file_io:
         for packet in packets:
             file_io.write(packet['data'])
