@@ -38,7 +38,20 @@ def send_number_of_packets(number):
 
 def send_file(file_path):
     packet_list = create_packet_list(file_path)
-    send_number_of_packets(number_of_packets(file_path))
+    send_number_of_packets(packet_list.__len__())
+    upload_packet_list(packet_list)
+    while True:
+        try:
+            response = client_socket.recv(BUFFER_SIZE)
+            if response.decode() == 'ACK':
+                break
+            elif response.decode() == 'NACK':
+                send_file(file_path)
+        except error:
+            pass
+
+
+def upload_packet_list(packet_list):
     for packet in packet_list:
         client_socket.sendto(pickle.dumps(packet), (SERVER_NAME, SERVER_PORT))
 
