@@ -1,10 +1,9 @@
 import os
 import pickle
-import select
+from socket import *
 from time import sleep
 
 from settings import *
-from socket import *
 
 
 def get_number_of_packets():
@@ -28,7 +27,7 @@ def receive_file(fn):
         packets.sort(key=lambda x: x['pos'])
     with open(fn, 'wb') as file_io:
         for packet in packets:
-            file_io.write(packet['content'])
+            file_io.write(packet['data'])
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)

@@ -33,7 +33,7 @@ def send_number_of_packets(number):
             if response.decode() == 'ACK':
                 break
         except error:
-            client_socket.sendto(num.encode(), (SERVER_NAME, SERVER_PORT))
+            pass
 
 
 def send_file(file_path):
