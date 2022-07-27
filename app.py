@@ -1,4 +1,3 @@
-from urllib import request
 
 from flask import Flask, render_template
 
@@ -10,9 +9,9 @@ def init():  # put application's code here
     return render_template('index.html')
 
 
-@app.route('/upload-image/<url>', methods=['GET', 'POST'])
-def uploadFile(url):  # put application's code here
-    return url
+@app.route('/upload-image/', methods=['GET', 'POST'])
+def uploadFile():  # put application's code here
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
