@@ -1,16 +1,53 @@
-          function submitForm() {
+
+            function submitForm() {
               const enc = new TextDecoder("utf-8");
               const fileList = document.getElementById("filePicker").files;
               const fileReader = new FileReader();
               if (fileReader && fileList && fileList.length) {
-                   fileReader.readAsArrayBuffer(fileList[0]);
-                  fileReader.onload = function () {
-                      const imageData = fileReader.result;
-                      console.log(imageData)
-                      console.log(enc.decode(imageData))
-                  };
+                    fileReader.readAsArrayBuffer(fileList[0]);
+                    fileReader.onload = function () {
+                        const imageData = fileReader.result;
+
+                        $.ajax({
+
+                            'url' : 'http://127.0.0.1:5000/upload-image/',
+                            'type' : 'POST',
+                            'data' : {
+                                nomefile : document.getElementById("filePicker").files[0].name,
+                                contenuto: arrayBufferToBase64(imageData)
+                            },
+                            'success' : function(data) {
+                                if (data == "0") {
+                                    alert("OK")
+                                } else {
+                                    alert("errore")
+                                }
+                            },
+                            'error' : function(xhr, status, error)
+                            {
+                                var err = eval("(" + xhr.responseText + ")");
+
+                                alert("errore");
+                            }
+                        });
+
+                        };
                    }
                 }
+
+
+
+function arrayBufferToBase64( buffer ) {
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+		binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
+}
+
+
             function addFile(){
 
                 const filePiecker = document.getElementById("filePicker");
