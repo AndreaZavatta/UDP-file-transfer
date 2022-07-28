@@ -120,7 +120,7 @@ while True:
         command, client_address = server_socket.recvfrom(BUFFER_SIZE)
         match command.decode():
             case 'list':
-                send_message(client_address, os.listdir(file_prefix).__str__().encode())
+                send_message(client_address, os.listdir(file_prefix).__str__())
             case 'get':
                 # the server has to send the file and wait for acknowledgment from the client
                 server_socket.settimeout(TIMEOUT)
