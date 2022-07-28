@@ -123,6 +123,9 @@ while True:
             # sends the command to the server
             send_message((SERVER_NAME, SERVER_PORT), command)
             file_name = message.split(' ')[1]
+            # if the file already exists, the client overwrites it
+            if os.listdir(file_prefix).__contains__(file_name):
+                os.remove(file_prefix + file_name)
             # sends the file name to the server
             send_message((SERVER_NAME, SERVER_PORT), file_name)
             # waits for the server to acknowledge the file name
