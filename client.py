@@ -80,7 +80,7 @@ while True:
             if response.decode() == 'NACK':
                 print('File not present on server')
             elif response.decode() == 'ACK':
-
+                pass
         case 'put':
             file_name = message.split(' ')[1]
             send_message(command)

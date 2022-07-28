@@ -1,7 +1,6 @@
 import os
 import pickle
 from socket import *
-from time import sleep
 from settings import *
 
 
@@ -24,7 +23,7 @@ def write_on_file(fn, packets):
             file_io.write(packet['data'])
 
 
-def receive_file(fn):
+def receive_file(fn, num):
     # list of packets
     packets = []
     # tries to collect packets until the number of collected packets is equal to the original number of packets
@@ -61,19 +60,18 @@ print("The server is ready to receive.")
 while True:
     try:
         command, client_address = server_socket.recvfrom(BUFFER_SIZE)
-        command_name = command.decode().split(" ")[0]
-        match command_name:
+        match command:
             case 'list':
                 server_socket.sendto(os.listdir(file_prefix).__str__().encode(), client_address)
             case 'get':
-                file_name = command.decode().split(" ")[1]
-                break
+                file_name = server_socket.recv(BUFFER_SIZE).decode()
+                if os.listdir(file_prefix).__contains__(file_name):
+                    server_socket.sendto('ACK'.encode(), client_address)
+                else:
+                    server_socket.sendto('NACK'.encode(), client_address)
             case 'put':
-                file_name = command.decode().split(" ")[1]
-                num = get_number_of_packets()
-                sleep(1)
-                receive_file(file_prefix + file_name)
-                f = open(file_prefix + file_name, "r")
+                file_name = server_socket.recv(BUFFER_SIZE).decode()
+                receive_file(file_prefix + file_name, get_number_of_packets())
             case 'quit':
                 server_socket.close()
     except error:
