@@ -2,16 +2,8 @@ import os
 import pickle
 from socket import *
 from time import sleep
-
+from client_utils import *
 from settings import *
-
-
-def send_message(msg):
-    client_socket.sendto(msg.encode(), (SERVER_NAME, SERVER_PORT))
-
-
-def receive_message():
-    return client_socket.recv(BUFFER_SIZE)
 
 
 def write_on_file(fn, packets):
@@ -23,14 +15,13 @@ def write_on_file(fn, packets):
 def receive_number_of_packets():
     while True:
         try:
-            data = receive_message()
-            # acknowledges that the number of packets info has arrived
-            send_message('ACK')
-            if data:
-                n = int(data.decode())
-                return n
-        except error:
-            pass
+            num = int(receive_message().decode())
+            # acknowledges that the number of packets info has arrived and is valid
+            send_acknowledge((SERVER_NAME, SERVER_PORT))
+            return num
+        except ValueError:
+            # acknowledges that the number of packets info is not valid
+            send_not_acknowledge((SERVER_NAME, SERVER_PORT))
 
 
 def receive_file(fn, num):
@@ -49,15 +40,15 @@ def receive_file(fn, num):
         packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
         if packets.__len__() == num:
-            send_message('ACK')
+            send_acknowledge((SERVER_NAME, SERVER_PORT))
             break
         else:
             failed_attempts += 1
             if failed_attempts < MAX_FAILED_ATTEMPTS:
                 packets.clear()
-                send_message('RETRY')
+                send_retry_acknowledge((SERVER_NAME, SERVER_PORT))
             else:
-                send_message('NACK')
+                send_not_acknowledge((SERVER_NAME, SERVER_PORT))
                 break
     # writes gathered data onto the new file of name 'fn'
     write_on_file(fn, packets)
@@ -77,7 +68,7 @@ def send_number_of_packets(number):
     num = "%s" % number
     while True:
         try:
-            send_message(num)
+            send_message((SERVER_NAME, SERVER_PORT), num)
             rps = receive_message()
             if rps.decode() == 'ACK':
                 break
@@ -111,11 +102,12 @@ def upload_packet_list(packet_list):
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
 client_socket.settimeout(None)
+set_utils_socket(client_socket)
 file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
     command = message.split(' ')[0]
-    send_message(command)
+    send_message((SERVER_NAME, SERVER_PORT), command)
     match command:
         case 'list':
             file_list = receive_message()
@@ -123,7 +115,7 @@ while True:
         case 'get':
             client_socket.settimeout(None)
             file_name = message.split(' ')[1]
-            send_message(file_name)
+            send_message((SERVER_NAME, SERVER_PORT), file_name)
             response = receive_message()
             if response.decode() == 'NACK':
                 print('File not present on server')
@@ -132,7 +124,7 @@ while True:
         case 'put':
             client_socket.settimeout(2)
             file_name = message.split(' ')[1]
-            send_message(file_name)
+            send_message((SERVER_NAME, SERVER_PORT), file_name)
             send_file(file_prefix + file_name)
         case 'quit':
             break
