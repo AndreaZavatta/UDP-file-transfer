@@ -115,15 +115,14 @@ file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
     command = message.split(' ')[0]
+    send_message(command)
     match command:
         case 'list':
-            send_message(command)
             file_list = receive_message()
             print(file_list.decode())
         case 'get':
             client_socket.settimeout(None)
             file_name = message.split(' ')[1]
-            send_message(command)
             send_message(file_name)
             response = receive_message()
             if response.decode() == 'NACK':
@@ -133,7 +132,6 @@ while True:
         case 'put':
             client_socket.settimeout(2)
             file_name = message.split(' ')[1]
-            send_message(command)
             send_message(file_name)
             send_file(file_prefix + file_name)
         case 'quit':
