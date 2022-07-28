@@ -110,7 +110,7 @@ def upload_packet_list(packet_list):
 
 
 client_socket = socket(AF_INET, SOCK_DGRAM)
-client_socket.settimeout(2)
+client_socket.settimeout(None)
 file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
@@ -121,6 +121,7 @@ while True:
             file_list = receive_message()
             print(file_list.decode())
         case 'get':
+            client_socket.settimeout(None)
             file_name = message.split(' ')[1]
             send_message(command)
             send_message(file_name)
@@ -130,6 +131,7 @@ while True:
             elif response.decode() == 'ACK':
                 receive_file(file_prefix + file_name, receive_number_of_packets())
         case 'put':
+            client_socket.settimeout(2)
             file_name = message.split(' ')[1]
             send_message(command)
             send_message(file_name)
