@@ -56,7 +56,7 @@ def receive_file(fn, num):
 
 def create_packet_list(file_path):
     with open(file_path, 'rb') as file_io:
-        num_of_packages = file_io.read().__len__() // UPLOAD_SIZE + 1
+        num_of_packages = os.path.getsize(file_path) // UPLOAD_SIZE + 1
         packet_list = []
         for i in range(num_of_packages):
             msg = file_io.read(UPLOAD_SIZE)
@@ -107,13 +107,13 @@ file_prefix = os.getcwd() + "\\clientFiles\\"
 while True:
     message = input('Input a command between list, get, put or quit to exit: ')
     command = message.split(' ')[0]
-    send_message((SERVER_NAME, SERVER_PORT), command)
     match command:
         case 'list':
             file_list = receive_message()
             print(file_list.decode())
         case 'get':
             client_socket.settimeout(None)
+            send_message((SERVER_NAME, SERVER_PORT), command)
             file_name = message.split(' ')[1]
             send_message((SERVER_NAME, SERVER_PORT), file_name)
             response = receive_message()
@@ -123,6 +123,7 @@ while True:
                 receive_file(file_prefix + file_name, receive_number_of_packets())
         case 'put':
             client_socket.settimeout(2)
+            send_message((SERVER_NAME, SERVER_PORT), command)
             file_name = message.split(' ')[1]
             send_message((SERVER_NAME, SERVER_PORT), file_name)
             send_file(file_prefix + file_name)
