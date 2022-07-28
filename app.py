@@ -6,6 +6,7 @@ from flask import request
 from flask import Flask, render_template
 from socket import *
 
+from client_functions import *
 from client_utils import send_message, receive_message, set_utils_socket
 from settings import *
 
@@ -32,30 +33,13 @@ def uploadFile():
     list.append(File(nomefile, len(message_bytes), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
     """
 	nomefile = request.form.get('nomefile')
-
-
-
-
-
-
-
-
 	# upload_file(nomefile)
 	return "0"
 
 
 @app.route('/getFileList/', methods=['GET'])
 def getFileList():
-	client_socket = socket(AF_INET, SOCK_DGRAM)
-	client_socket.settimeout(TIMEOUT)
-	set_utils_socket(client_socket)
-	send_message((SERVER_NAME, SERVER_PORT), 'list')
-	file_list = receive_message()
-	ret = file_list.decode()
-	#jsonRet = json.loads(ret)
-	client_socket.close()
-	return ret
-
+	return list_files_server()
 
 if __name__ == '__main__':
 	app.run(debug=True)
