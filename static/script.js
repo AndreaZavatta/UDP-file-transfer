@@ -44,16 +44,17 @@ function submitForm() {
 
 function getFileList() {
     $.ajax({
-        'url': 'http://127.0.0.1:5000/getFileList/',
-        'type': 'GET',
-        'success': function (list) {
-            var obj = JSON.parse(list);
+        url: 'http://127.0.0.1:5000/getFileList/',
+
+        type: 'GET',
+        success: function (ret) {
             $("#box-file").empty();
-            obj.forEach(function (el) {
-                addBoxFile(el.name, el.data);
+            var list = ret.replaceAll("[","").replaceAll("]","").replaceAll("'","").replaceAll(" ","").split(",");
+            list.forEach(function (el) {
+                addBoxFile(el, "");
             });
         },
-        'error': function (xhr, status, error) {
+        error: function (xhr, status, error) {
             var err = eval("(" + xhr.responseText + ")");
             alert("errore");
         }
