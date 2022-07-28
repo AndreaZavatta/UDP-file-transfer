@@ -66,7 +66,7 @@ def receive_file(fn, num):
 def create_packet_list(file_path):
     with open(file_path, 'rb') as file_io:
         # calculates the number of packets using the size of both the file and the buffer (considering packets' headers)
-        num_of_packages = file_io.read().__len__() // UPLOAD_SIZE + 1
+        num_of_packages = os.path.getsize(file_path) // UPLOAD_SIZE + 1
         packet_list = []
         for i in range(num_of_packages):
             msg = file_io.read(UPLOAD_SIZE)
@@ -120,11 +120,11 @@ while True:
         command, client_address = server_socket.recvfrom(BUFFER_SIZE)
         match command.decode():
             case 'list':
-                server_socket.sendto(os.listdir(file_prefix).__str__().encode(), client_address)
+                send_message(client_address, os.listdir(file_prefix).__str__().encode())
             case 'get':
                 # the server has to send the file and wait for acknowledgment from the client
                 server_socket.settimeout(TIMEOUT)
-                file_name = server_socket.recv(BUFFER_SIZE).decode()
+                file_name = receive_message().decode()
                 # the server has to notify the client on the presence of the requested file among the server files
                 if os.listdir(file_prefix).__contains__(file_name):
                     send_message(client_address, 'ACK')
@@ -133,8 +133,25 @@ while True:
             case 'put':
                 # the server has to collect the packets sent by the client and acknowledge the latter on the completion
                 server_socket.settimeout(None)
-                file_name = receive_message().decode()
-                receive_file(file_prefix + file_name, receive_number_of_packets())
+                while True:
+                    # obtains the file name and requests a check to the client on its validity
+                    file_name = receive_message().decode()
+                    send_message(client_address, file_name)
+                    server_socket.settimeout(TIMEOUT)
+                    try:
+                        response = receive_message().decode()
+                        # if the check is successful the name is definitively obtained
+                        if response == 'ACK':
+                            server_socket.settimeout(None)
+                            receive_file(file_prefix + file_name, receive_number_of_packets())
+                            break
+                        # if the client declares the operation is unsuccessful, the connection is interrupted
+                        elif response == 'NACK':
+                            print('Connection failed')
+                            break
+                    except error:
+                        # timeout error, the client has to re-send the information
+                        pass
             case 'quit':
                 server_socket.close()
     except error:
