@@ -107,7 +107,7 @@ print("The server is ready to receive.")
 while True:
     try:
         command, client_address = server_socket.recvfrom(BUFFER_SIZE)
-        match command:
+        match command.decode():
             case 'list':
                 server_socket.sendto(os.listdir(file_prefix).__str__().encode(), client_address)
             case 'get':
