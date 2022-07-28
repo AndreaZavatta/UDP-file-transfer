@@ -137,7 +137,7 @@ def get_files(file_name):
 			# if the server does not acknowledge the file name or if the connection timed out,
 			# then the client exits
 			if response.decode() == 'NACK':
-				return -1
+				return "-1"
 			# if the server acknowledges the file name, then the client receives the file
 			elif response.decode() == 'ACK':
 				receive_file(file_prefix + file_name, receive_number_of_packets())
@@ -149,4 +149,6 @@ def get_files(file_name):
 		except error:
 			failed_attempts += 1
 	if failed_attempts == MAX_FAILED_ATTEMPTS:
-		return 0
+		return "-1"
+	else:
+		return "0"

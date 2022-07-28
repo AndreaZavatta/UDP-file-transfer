@@ -37,9 +37,16 @@ def uploadFile():
 	return "0"
 
 
-@app.route('/getFileList/', methods=['GET'])
-def getFileList():
+@app.route('/list/', methods=['GET'])
+def fileList():
 	return list_files_server()
+
+
+@app.route('/get/', methods=['GET'])
+def getFileList():
+	filename = request.args.get('filename')
+	return get_files(filename)
+
 
 if __name__ == '__main__':
 	app.run(debug=True)

@@ -3,7 +3,21 @@ $(document).ready(function () {
 
     $(document).on("click", ".btn-download",function () {
         var filename = $(this).closest(".card-body").find(".card-text").html();
-        alert(filename);
+        $.ajax({
+            'url': 'http://127.0.0.1:5000/get?filename=' + filename,
+            'type': 'GET',
+            'success': function (data) {
+                if (data == "0") {
+                    alert("download andato a buon fine")
+                } else {
+                    alert("errore");
+                }
+            },
+            'error': function (xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+                alert("errore");
+            }
+        });
     });
 })
 
@@ -44,8 +58,7 @@ function submitForm() {
 
 function getFileList() {
     $.ajax({
-        url: 'http://127.0.0.1:5000/getFileList/',
-
+        url: 'http://127.0.0.1:5000/list/',
         type: 'GET',
         success: function (ret) {
             $("#box-file").empty();
