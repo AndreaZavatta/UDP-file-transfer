@@ -143,6 +143,9 @@ while True:
                         # if the check is successful the name is definitively obtained
                         if response == 'ACK':
                             server_socket.settimeout(None)
+                            # if the file already exists, it is firstly removed and then recreated
+                            if os.listdir(file_prefix).__contains__(file_name):
+                                os.remove(file_prefix + file_name)
                             receive_file(file_prefix + file_name, receive_number_of_packets())
                             break
                         # if the client declares the operation is unsuccessful, the connection is interrupted
