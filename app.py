@@ -1,9 +1,7 @@
 import base64
 import datetime
-import json
 from json import JSONEncoder
 from flask import request
-
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -28,12 +26,15 @@ def init():
 
 @app.route('/upload-file/', methods=['GET', 'POST'])
 def uploadFile():
-    # contenuto = base64 del file
+    """contenuto = base64 del file
     contenuto = request.form.get('contenuto')
-    # message_byte = byte array del file
+    message_byte = byte array del file
     message_bytes = base64.b64decode(contenuto)
     nomefile = request.form.get('nomefile')
     list.append(File(nomefile, len(message_bytes), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    """
+    nomefile = request.form.get('nomefile')
+    #upload_file(nomefile)
     return "0"
 
 

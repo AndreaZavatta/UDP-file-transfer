@@ -1,5 +1,10 @@
 $(document).ready(function () {
     getFileList();
+
+    $(document).on("click", ".btn-download",function () {
+        var filename = $(this).closest(".card-body").find(".card-text").html();
+        alert(filename);
+    });
 })
 
 function submitForm() {
