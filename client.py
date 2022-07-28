@@ -30,8 +30,8 @@ def send_number_of_packets(number):
     while True:
         try:
             client_socket.sendto(num.encode(), (SERVER_NAME, SERVER_PORT))
-            response = client_socket.recv(BUFFER_SIZE)
-            if response.decode() == 'ACK':
+            rps = client_socket.recv(BUFFER_SIZE)
+            if rps.decode() == 'ACK':
                 break
         except error:
             pass
@@ -43,12 +43,12 @@ def send_file(file_path):
     upload_packet_list(packet_list)
     while True:
         try:
-            response = client_socket.recv(BUFFER_SIZE)
-            if response.decode() == 'ACK':
+            rps = client_socket.recv(BUFFER_SIZE)
+            if rps.decode() == 'ACK':
                 break
-            elif response.decode() == 'RETRY':
+            elif rps.decode() == 'RETRY':
                 upload_packet_list(packet_list)
-            elif response.decode() == 'NACK':
+            elif rps.decode() == 'NACK':
                 print('File transfer failed')
                 break
         except error:
@@ -69,19 +69,22 @@ while True:
     command = message.split(' ')[0]
     match command:
         case 'list':
-            send_message('list')
+            send_message(command)
             file_list = client_socket.recv(BUFFER_SIZE)
             print(file_list.decode())
         case 'get':
             file_name = message.split(' ')[1]
-            send_message(message)
-            file = client_socket.recv(BUFFER_SIZE)
-            f = open(file_prefix + file_name, 'wb')
-            f.write(file.strip())
-            f.close()
+            send_message(command)
+            send_message(file_name)
+            response = client_socket.recv(BUFFER_SIZE)
+            if response.decode() == 'NACK':
+                print('File not present on server')
+            elif response.decode() == 'ACK':
+
         case 'put':
             file_name = message.split(' ')[1]
-            send_message(message)
+            send_message(command)
+            send_message(file_name)
             send_file(file_prefix + file_name)
         case 'quit':
             break
