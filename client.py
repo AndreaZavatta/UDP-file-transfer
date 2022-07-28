@@ -1,10 +1,5 @@
 from client_functions import *
 
-# initializes the client socket and client utils
-client_socket = socket(AF_INET, SOCK_DGRAM)
-client_socket.settimeout(None)
-set_utils_socket(client_socket)
-file_prefix = os.getcwd() + "\\clientFiles\\"
 # main loop
 while True:
     # receives the input from the user
@@ -14,17 +9,7 @@ while True:
     match command:
         # gets the list of files from the server and prints it
         case 'list':
-            client_socket.settimeout(TIMEOUT)
-            send_message((SERVER_NAME, SERVER_PORT), command)
-            timeouts = 0
-            # the arrival of the list may be timed out so there needs to be a check on it
-            while timeouts < MAX_FAILED_ATTEMPTS:
-                try:
-                    file_list = receive_message()
-                    print(file_list.decode())
-                    break
-                except error:
-                    timeouts += 1
+            print(list_files_server())
         case 'get':
             client_socket.settimeout(TIMEOUT)
             # sends the command to the server
