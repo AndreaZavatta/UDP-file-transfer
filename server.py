@@ -1,10 +1,17 @@
 import os
 import pickle
 from socket import *
+from time import sleep
 from settings import *
 
 
-def get_number_of_packets():
+def write_on_file(fn, packets):
+    with open(fn, 'wb') as file_io:
+        for packet in packets:
+            file_io.write(packet['data'])
+
+
+def receive_number_of_packets():
     while True:
         try:
             data = server_socket.recv(BUFFER_SIZE)
@@ -15,12 +22,6 @@ def get_number_of_packets():
                 return n
         except error:
             pass
-
-
-def write_on_file(fn, packets):
-    with open(fn, 'wb') as file_io:
-        for packet in packets:
-            file_io.write(packet['data'])
 
 
 def receive_file(fn, num):
@@ -52,6 +53,52 @@ def receive_file(fn, num):
     write_on_file(fn, packets)
 
 
+def create_packet_list(file_path):
+    with open(file_path, 'rb') as file_io:
+        num_of_packages = file_io.read().__len__() // UPLOAD_SIZE + 1
+        packet_list = []
+        for i in range(num_of_packages):
+            msg = file_io.read(UPLOAD_SIZE)
+            packet_list.append({'pos': i, 'data': msg})
+        return packet_list
+
+
+def send_number_of_packets(number):
+    num = "%s" % number
+    while True:
+        try:
+            server_socket.sendto(num.encode(), client_address)
+            rps = server_socket.recv(BUFFER_SIZE)
+            if rps.decode() == 'ACK':
+                break
+        except error:
+            pass
+
+
+def upload_packet_list(packet_list):
+    for packet in packet_list:
+        server_socket.sendto(pickle.dumps(packet), client_address)
+        sleep(0.1)
+
+
+def send_file(file_path):
+    packet_list = create_packet_list(file_path)
+    send_number_of_packets(packet_list.__len__())
+    upload_packet_list(packet_list)
+    while True:
+        try:
+            rps = server_socket.recv(BUFFER_SIZE)
+            if rps.decode() == 'ACK':
+                break
+            elif rps.decode() == 'RETRY':
+                upload_packet_list(packet_list)
+            elif rps.decode() == 'NACK':
+                print('File transfer failed')
+                break
+        except error:
+            pass
+
+
 server_socket = socket(AF_INET, SOCK_DGRAM)
 server_socket.settimeout(None)
 server_socket.bind(('', SERVER_PORT))
@@ -71,7 +118,7 @@ while True:
                     server_socket.sendto('NACK'.encode(), client_address)
             case 'put':
                 file_name = server_socket.recv(BUFFER_SIZE).decode()
-                receive_file(file_prefix + file_name, get_number_of_packets())
+                receive_file(file_prefix + file_name, receive_number_of_packets())
             case 'quit':
                 server_socket.close()
     except error:

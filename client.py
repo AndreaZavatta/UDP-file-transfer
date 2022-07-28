@@ -17,9 +17,9 @@ def number_of_packets(file_path):
 
 def create_packet_list(file_path):
     with open(file_path, 'rb') as file_io:
-        packages = number_of_packets(file_path)
+        num_of_packages = file_io.read().__len__() // UPLOAD_SIZE + 1
         packet_list = []
-        for i in range(packages):
+        for i in range(num_of_packages):
             msg = file_io.read(UPLOAD_SIZE)
             packet_list.append({'pos': i, 'data': msg})
         return packet_list
