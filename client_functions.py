@@ -111,13 +111,16 @@ def list_files_server():
 	send_message((SERVER_NAME, SERVER_PORT), "list")
 	timeouts = 0
 	# the arrival of the list may be timed out so there needs to be a check on it
+	ret = ""
 	while timeouts < MAX_FAILED_ATTEMPTS:
 		try:
 			file_list = receive_message()
-			return file_list.decode()
+			ret = file_list.decode()
 			break
 		except error:
 			timeouts += 1
+	return ret
+
 
 
 def get_files(file_name):
@@ -131,13 +134,15 @@ def get_files(file_name):
 	send_message((SERVER_NAME, SERVER_PORT), file_name)
 	# waits for the server to acknowledge the file name
 	failed_attempts = 0
+	ret = "0"
 	while failed_attempts < MAX_FAILED_ATTEMPTS:
 		try:
 			response = receive_message()
 			# if the server does not acknowledge the file name or if the connection timed out,
 			# then the client exits
 			if response.decode() == 'NACK':
-				return "-1"
+				ret = "-1"
+				break
 			# if the server acknowledges the file name, then the client receives the file
 			elif response.decode() == 'ACK':
 				receive_file(file_prefix + file_name, receive_number_of_packets())
@@ -149,6 +154,8 @@ def get_files(file_name):
 		except error:
 			failed_attempts += 1
 	if failed_attempts == MAX_FAILED_ATTEMPTS:
-		return "-1"
+		ret = "-1"
 	else:
-		return "0"
+		ret = "0"
+	return ret
+

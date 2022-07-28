@@ -49,10 +49,11 @@ while True:
 						failed_attempts += 1
 			else:
 				print('File not present on client')
+			client_socket.close()
 		# if the command is quit, then the client exits
 		case 'quit':
 			break
 		# if the command is not valid, then the client notifies the user
 		case default:
 			print('Invalid command')
-client_socket.close()
+
