@@ -11,6 +11,7 @@ client_socket.settimeout(None)
 set_utils_socket(client_socket)
 file_prefix = os.getcwd() + "\\clientFiles\\"
 
+
 def write_on_file(fn, packets):
 	with open(fn, 'wb') as file_io:
 		for packet in packets:
@@ -117,3 +118,35 @@ def list_files_server():
 			break
 		except error:
 			timeouts += 1
+
+
+def get_files(file_name):
+	client_socket.settimeout(TIMEOUT)
+	# sends the command to the server
+	send_message((SERVER_NAME, SERVER_PORT), "get")
+	# if the file already exists, the client overwrites it
+	if os.listdir(file_prefix).__contains__(file_name):
+		os.remove(file_prefix + file_name)
+	# sends the file name to the server
+	send_message((SERVER_NAME, SERVER_PORT), file_name)
+	# waits for the server to acknowledge the file name
+	failed_attempts = 0
+	while failed_attempts < MAX_FAILED_ATTEMPTS:
+		try:
+			response = receive_message()
+			# if the server does not acknowledge the file name or if the connection timed out,
+			# then the client exits
+			if response.decode() == 'NACK':
+				return -1
+			# if the server acknowledges the file name, then the client receives the file
+			elif response.decode() == 'ACK':
+				receive_file(file_prefix + file_name, receive_number_of_packets())
+				break
+			# if the server retries, then the client retries to send the file name
+			elif response.decode() == 'RETRY':
+				failed_attempts += 1
+				send_message((SERVER_NAME, SERVER_PORT), file_name)
+		except error:
+			failed_attempts += 1
+	if failed_attempts == MAX_FAILED_ATTEMPTS:
+		return 0
