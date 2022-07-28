@@ -14,4 +14,8 @@ def send_retry_acknowledge(server_socket, client_address):
 
 
 def receive_message(server_socket):
-    server_socket.recv(BUFFER_SIZE)
+    return server_socket.recv(BUFFER_SIZE)
+
+
+def send_message(server_socket, client_address, message: (str, int)):
+    server_socket.sendto(message.encode(), client_address)

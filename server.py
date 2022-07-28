@@ -9,14 +9,13 @@ from file_writer import *
 def receive_number_of_packets():
     while True:
         try:
-            data = receive_message(server_socket)
-            # acknowledges that the number of packets info has arrived
+            num = int(receive_message(server_socket).decode())
+            # acknowledges that the number of packets info has arrived and is valid
             send_acknowledge(server_socket, client_address)
-            if data:
-                n = int(data.decode())
-                return n
-        except error:
-            pass
+            return num
+        except ValueError:
+            # acknowledges that the number of packets info is not valid
+            send_not_acknowledge(server_socket, client_address)
 
 
 def send_number_of_packets(number):
@@ -61,35 +60,45 @@ def receive_file(fn, num):
 
 def create_packet_list(file_path):
     with open(file_path, 'rb') as file_io:
+        # calculates the number of packets using the size of both the file and the buffer (considering packets' headers)
         num_of_packages = file_io.read().__len__() // UPLOAD_SIZE + 1
         packet_list = []
         for i in range(num_of_packages):
             msg = file_io.read(UPLOAD_SIZE)
+            # each packet consists of a position and some data read from the file
             packet_list.append({'pos': i, 'data': msg})
         return packet_list
 
 
 def send_packets(packet_list):
+    # each packet must be sent to the client
     for packet in packet_list:
         server_socket.sendto(pickle.dumps(packet), client_address)
         sleep(0.1)
 
 
 def send_file(file_path):
+    # creates a list of packets by reading the file to send
     packet_list = create_packet_list(file_path)
     send_number_of_packets(packet_list.__len__())
     send_packets(packet_list)
+    # waits for the acknowledgment
     while True:
         try:
-            rps = server_socket.recv(BUFFER_SIZE)
+            # gets the response of the client upon the arrival of the packets
+            rps = receive_message(server_socket)
             if rps.decode() == 'ACK':
+                # this operation has been successful, therefore it is over
                 break
             elif rps.decode() == 'RETRY':
+                # this operation has not been successful, the client asks the server to retry
                 send_packets(packet_list)
             elif rps.decode() == 'NACK':
+                # this operation has not been successful, the client concludes that the operation is definitively over
                 print('File transfer failed')
                 break
         except error:
+            # timeout error on the arrival of the acknowledgment, the server retries to obtain it
             pass
 
 
@@ -98,6 +107,7 @@ server_socket.bind(('', SERVER_PORT))
 server_socket.settimeout(None)
 file_prefix = os.getcwd() + "\\serverFiles\\"
 print("The server is ready to receive.")
+
 while True:
     try:
         server_socket.settimeout(None)
@@ -106,15 +116,18 @@ while True:
             case 'list':
                 server_socket.sendto(os.listdir(file_prefix).__str__().encode(), client_address)
             case 'get':
-                server_socket.settimeout(2)
+                # the server has to send the file and wait for acknowledgment from the client
+                server_socket.settimeout(TIMEOUT)
                 file_name = server_socket.recv(BUFFER_SIZE).decode()
+                # the server has to notify the client on the presence of the requested file among the server files
                 if os.listdir(file_prefix).__contains__(file_name):
-                    server_socket.sendto('ACK'.encode(), client_address)
+                    send_message(server_socket, client_address, 'ACK')
                 else:
-                    server_socket.sendto('NACK'.encode(), client_address)
+                    send_message(server_socket, client_address, 'NACK')
             case 'put':
+                # the server has to collect the packets sent by the client and acknowledge the latter on the completion
                 server_socket.settimeout(None)
-                file_name = server_socket.recv(BUFFER_SIZE).decode()
+                file_name = receive_message(server_socket).decode()
                 receive_file(file_prefix + file_name, receive_number_of_packets())
             case 'quit':
                 server_socket.close()
