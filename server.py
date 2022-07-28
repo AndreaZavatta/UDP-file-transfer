@@ -3,27 +3,32 @@ import pickle
 from socket import *
 from time import sleep
 from server_utils import *
-from file_writer import *
+
+
+def write_on_file(fn, packets):
+    with open(fn, 'wb') as file_io:
+        for packet in packets:
+            file_io.write(packet['data'])
 
 
 def receive_number_of_packets():
     while True:
         try:
-            num = int(receive_message(server_socket).decode())
+            num = int(receive_message().decode())
             # acknowledges that the number of packets info has arrived and is valid
-            send_acknowledge(server_socket, client_address)
+            send_acknowledge(client_address)
             return num
         except ValueError:
             # acknowledges that the number of packets info is not valid
-            send_not_acknowledge(server_socket, client_address)
+            send_not_acknowledge(client_address)
 
 
 def send_number_of_packets(number):
     num = "%s" % number
     while True:
         try:
-            server_socket.sendto(num.encode(), client_address)
-            rps = server_socket.recv(BUFFER_SIZE)
+            send_message(client_address, num)
+            rps = receive_message()
             if rps.decode() == 'ACK':
                 break
         except error:
@@ -45,15 +50,15 @@ def receive_file(fn, num):
         packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
         if packets.__len__() == num:
-            send_acknowledge(server_socket, client_address)
+            send_acknowledge(client_address)
             break
         else:
             failed_attempts += 1
             if failed_attempts < MAX_FAILED_ATTEMPTS:
                 packets.clear()
-                send_retry_acknowledge(server_socket, client_address)
+                send_retry_acknowledge(client_address)
             else:
-                send_not_acknowledge(server_socket, client_address)
+                send_not_acknowledge(client_address)
     # writes gathered data onto the new file of name 'fn'
     write_on_file(fn, packets)
 
@@ -86,7 +91,7 @@ def send_file(file_path):
     while True:
         try:
             # gets the response of the client upon the arrival of the packets
-            rps = receive_message(server_socket)
+            rps = receive_message()
             if rps.decode() == 'ACK':
                 # this operation has been successful, therefore it is over
                 break
@@ -103,6 +108,7 @@ def send_file(file_path):
 
 
 server_socket = socket(AF_INET, SOCK_DGRAM)
+set_utils_socket(server_socket)
 server_socket.bind(('', SERVER_PORT))
 server_socket.settimeout(None)
 file_prefix = os.getcwd() + "\\serverFiles\\"
@@ -121,13 +127,13 @@ while True:
                 file_name = server_socket.recv(BUFFER_SIZE).decode()
                 # the server has to notify the client on the presence of the requested file among the server files
                 if os.listdir(file_prefix).__contains__(file_name):
-                    send_message(server_socket, client_address, 'ACK')
+                    send_message(client_address, 'ACK')
                 else:
-                    send_message(server_socket, client_address, 'NACK')
+                    send_message(client_address, 'NACK')
             case 'put':
                 # the server has to collect the packets sent by the client and acknowledge the latter on the completion
                 server_socket.settimeout(None)
-                file_name = receive_message(server_socket).decode()
+                file_name = receive_message().decode()
                 receive_file(file_prefix + file_name, receive_number_of_packets())
             case 'quit':
                 server_socket.close()
