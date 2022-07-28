@@ -119,18 +119,34 @@ while True:
             file_list = receive_message()
             print(file_list.decode())
         case 'get':
-            client_socket.settimeout(None)
+            client_socket.settimeout(TIMEOUT)
             # sends the command to the server
             send_message((SERVER_NAME, SERVER_PORT), command)
             file_name = message.split(' ')[1]
             # sends the file name to the server
             send_message((SERVER_NAME, SERVER_PORT), file_name)
             # waits for the server to acknowledge the file name
-            response = receive_message()
-            if response.decode() == 'NACK':
-                print('File not present on server')
-            elif response.decode() == 'ACK':
-                receive_file(file_prefix + file_name, receive_number_of_packets())
+            failed_attempts = 0
+            while failed_attempts < MAX_FAILED_ATTEMPTS:
+                try:
+                    response = receive_message()
+                    # if the server does not acknowledge the file name or if the connection timed out,
+                    # then the client exits
+                    if response.decode() == 'NACK':
+                        print('File not present on server or connection timed out')
+                        break
+                    # if the server acknowledges the file name, then the client receives the file
+                    elif response.decode() == 'ACK':
+                        receive_file(file_prefix + file_name, receive_number_of_packets())
+                        break
+                    # if the server retries, then the client retries to send the file name
+                    elif response.decode() == 'RETRY':
+                        failed_attempts += 1
+                        send_message((SERVER_NAME, SERVER_PORT), file_name)
+                except error:
+                    failed_attempts += 1
+            if failed_attempts == MAX_FAILED_ATTEMPTS:
+                print('Connection timed out while getting file')
         case 'put':
             client_socket.settimeout(TIMEOUT)
             # sends the command to the server
@@ -157,7 +173,7 @@ while True:
                         # of failed attempts then the client notifies the server and the client exits
                         else:
                             send_not_acknowledge((SERVER_NAME, SERVER_PORT))
-                            print('Connection failed')
+                            print('Connection timed out while sending file')
                             break
                     # if the server does not respond, then the client tries to receive the acknowledgement again
                     except error:
