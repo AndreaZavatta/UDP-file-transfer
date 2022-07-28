@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 from json import JSONEncoder
 from flask import request
@@ -14,9 +15,10 @@ class MyEncoder(JSONEncoder):
 
 
 class File:
-    def __init__(self, name, dimension):
+    def __init__(self, name, dimension, data):
         self.name = name
         self.dimension = dimension
+        self.data = data
 
 
 @app.route('/')
@@ -26,20 +28,16 @@ def init():
 
 @app.route('/upload-file/', methods=['GET', 'POST'])
 def uploadFile():
-    ret = 0
-    try:
-        # contenuto = base64 del file
-        contenuto = request.form.get('contenuto')
-        # message_byte = byte array del file
-        message_bytes = base64.b64decode(contenuto)
-        nomefile = request.form.get('nomefile')
-        list.append(File(nomefile, 3))
-    except:
-        ret = 1
-    return str(ret)
+    # contenuto = base64 del file
+    contenuto = request.form.get('contenuto')
+    # message_byte = byte array del file
+    message_bytes = base64.b64decode(contenuto)
+    nomefile = request.form.get('nomefile')
+    list.append(File(nomefile, len(message_bytes), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    return "0"
 
 
-list = [File("firstFile", 3), File("secondFile", 4), File("thirdFile", 27)]
+list = [File("firstFile", 3, "9 hours ago"), File("secondFile", 4, "10 mins ago"), File("thirdFile", 27, "11 days ago")]
 
 
 @app.route('/getFileList/', methods=['GET'])
