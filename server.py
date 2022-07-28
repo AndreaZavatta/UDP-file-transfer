@@ -124,12 +124,29 @@ while True:
             case 'get':
                 # the server has to send the file and wait for acknowledgment from the client
                 server_socket.settimeout(TIMEOUT)
-                file_name = receive_message().decode()
-                # the server has to notify the client on the presence of the requested file among the server files
-                if os.listdir(file_prefix).__contains__(file_name):
-                    send_message(client_address, 'ACK')
-                else:
-                    send_message(client_address, 'NACK')
+                fails = 0
+                while True:
+                    try:
+                        file_name = receive_message().decode()
+                        # the server has to notify the client on the presence
+                        # of the requested file among the server files
+                        if os.listdir(file_prefix).__contains__(file_name):
+                            # file is present, so the server notifies the client and sends the file
+                            send_acknowledge(client_address)
+                            send_file(file_prefix + file_name)
+                        else:
+                            # file is not present, so the server notifies the client that the operation cannot be done
+                            send_not_acknowledge(client_address)
+                        # under any circumstance, after the piece of code above the 'get' operation is over
+                        break
+                    # timeout error, the operation has to be performed again
+                    except error:
+                        fails += 1
+                        if fails < MAX_FAILED_ATTEMPTS:
+                            send_retry_acknowledge(client_address)
+                        else:
+                            send_not_acknowledge(client_address)
+                            break
             case 'put':
                 # the server has to collect the packets sent by the client and acknowledge the latter on the completion
                 server_socket.settimeout(None)
