@@ -115,9 +115,16 @@ while True:
         # gets the list of files from the server and prints it
         case 'list':
             client_socket.settimeout(TIMEOUT)
-            send_message((SERVER_NAME, SERVER_PORT), 'list')
-            file_list = receive_message()
-            print(file_list.decode())
+            send_message((SERVER_NAME, SERVER_PORT), command)
+            timeouts = 0
+            # the arrival of the list may be timed out so there needs to be a check on it
+            while timeouts < MAX_FAILED_ATTEMPTS:
+                try:
+                    file_list = receive_message()
+                    print(file_list.decode())
+                    break
+                except error:
+                    timeouts += 1
         case 'get':
             client_socket.settimeout(TIMEOUT)
             # sends the command to the server
