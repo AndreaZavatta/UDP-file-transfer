@@ -1,4 +1,4 @@
-from client_gui import *
+from client import *
 
 
 # main loop
@@ -12,11 +12,9 @@ while True:
 		case 'list':
 			print(list_files())
 		case 'get':
-			file = get_file(message.split(' ')[1])
-			if file == ERROR_CODE:
+			res = get_file(message.split(' ')[1])
+			if res == ERROR_CODE:
 				print('File not present on server or connection timed out')
-			else:
-				print('Connection timed out while getting file')
 		case 'put':
 			put_file(message.split(' ')[1])
 		# if the command is quit, then the client exits
