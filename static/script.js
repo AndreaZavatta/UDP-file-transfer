@@ -2,7 +2,10 @@ $(document).ready(function () {
     getFileList();
 })
 
-
+function change_dropdown_value(el) {
+  var txt = el.textContent;
+   document.querySelector(".client-files").innerHTML = txt;
+}
 $(document).on("click", ".btn-download",function () {
     var filename = $(this).closest(".card-body").find(".card-text").html();
     $.ajax({

@@ -26,9 +26,16 @@
               <p class="lead fw-normal text-white">This site allow you to upload and download files</p>
                 <div class="container py-3">
 
-                  <div class="input-group">
-                    <input type="file" id="filePicker" class="form-control" >
-                  </div>
+                  <div class="btn-group">
+				  <button type="button" class="btn btn-light dropdown-toggle client-files" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				    Right-aligned menu
+				  </button>
+				  <div class="dropdown-menu dropdown-menu-right">
+				    <button class="dropdown-item" type="button" onclick="change_dropdown_value(this)">Action</button>
+				    <button class="dropdown-item" type="button" onclick="change_dropdown_value(this)">Another action</button>
+				    <button class="dropdown-item" type="button" onclick="change_dropdown_value(this)">Something else here</button>
+				  </div>
+				</div>
                 </div>
                 <button type="button" class="btn btn-outline-light m-4 add-file">Add File</button>
             </div>
