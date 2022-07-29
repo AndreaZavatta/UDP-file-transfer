@@ -38,8 +38,7 @@ def upload():
 
 @app.route('/getclient/', methods=['GET'])
 def files_client():
-	a = get_client_files()
-	return a
+	return get_client_files()
 
 
 if __name__ == '__main__':

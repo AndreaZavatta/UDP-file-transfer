@@ -14,7 +14,7 @@ file_prefix = os.getcwd() + "\\clientFiles\\"
 
 
 def get_client_files():
-	return os.listdir(file_prefix)
+	return str(os.listdir(file_prefix))
 
 
 def write_on_file(fn, packets):

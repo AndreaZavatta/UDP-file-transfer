@@ -5,7 +5,7 @@ function set_div_height() {
 $(document).ready(function () {
     getFileList();
     fill_dropdown_client();
-     set_div_height();
+    set_div_height();
 
     $(window).resize(function () {
         set_div_height();
