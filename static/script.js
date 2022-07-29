@@ -1,11 +1,9 @@
 $(document).ready(function () {
     getFileList();
+    fill_dropdown_client();
 })
 
-function change_dropdown_value(el) {
-  var txt = el.textContent;
-   document.querySelector(".client-files").innerHTML = txt;
-}
+
 $(document).on("click", ".btn-download",function () {
     var filename = $(this).closest(".card-body").find(".card-text").html();
     $.ajax({
@@ -44,6 +42,26 @@ $(document).on("click", ".add-file",function () {
             });
         })
 
+function fill_dropdown_client(){
+                $.ajax({
+                'url': 'http://127.0.0.1:5000/getclient/',
+                'type': 'GET',
+                'success': function (data) {
+                    var list = data.replaceAll("[","").replaceAll("]","").replaceAll("'","").replaceAll(" ","").split(",");
+                    list.forEach(x => addDropdownItem(x))
+                },
+                'error': function (xhr, status, error) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    alert("errore");
+                }
+            });
+}
+
+function change_dropdown_value(el) {
+  var txt = el.textContent;
+   document.querySelector(".client-files").innerHTML = txt;
+}
+
 function getFileList() {
     $.ajax({
         url: 'http://127.0.0.1:5000/list/',
@@ -75,6 +93,12 @@ function addBoxFile(filename, data) {
     div.find(".card-text").html(filename);
     div.find(".text-muted").html(data);
     $("#box-file").append(div);
+}
+
+function addDropdownItem(filename) {
+    let item = $(".hide-item-client").clone().removeClass("d-none hide-item-client");
+    item.html(filename)
+    $(".dropdown-menu-client").append(item);
 }
 function refreshPage(){
     window.location.reload();
