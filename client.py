@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pickle
 from socket import *
@@ -38,11 +39,22 @@ def receive_file(fn, num):
 	# list of packets
 	packets = []
 	# tries to collect packets until the number of collected packets is equal to the original number of packets
+	failed_attempts = 0
 	while True:
-		failed_attempts = 0
 		for i in range(num):
 			data = receive_message()
 			content = pickle.loads(data)
+			# if the checksum does not match, then the client notifies the server
+			checksum = hashlib.md5(content['data']).digest()
+			if checksum != content['checksum']:
+				failed_attempts += 1
+				if failed_attempts < MAX_FAILED_ATTEMPTS:
+					packets.clear()
+					send_retry_acknowledge((SERVER_NAME, SERVER_PORT))
+					continue
+				else:
+					send_not_acknowledge((SERVER_NAME, SERVER_PORT))
+					break
 			packets.append(content)
 		# re-orders the list based on the initial position of the packets
 		packets.sort(key=lambda x: x['pos'])
@@ -68,7 +80,8 @@ def create_packet_list(file_path):
 		packet_list = []
 		for i in range(num_of_packages):
 			msg = file_io.read(UPLOAD_SIZE)
-			packet_list.append({'pos': i, 'data': msg})
+			checksum = hashlib.md5(msg).digest()
+			packet_list.append({'pos': i, 'data': msg, 'checksum': checksum})
 		return packet_list
 
 
