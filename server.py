@@ -40,12 +40,10 @@ def receive_file(fn, num):
     # tries to collect packets until the number of collected packets is equal to the original number of packets
     while True:
         failed_attempts = 0
-        print(num)
         for i in range(num):
             data = server_socket.recv(BUFFER_SIZE)
             content = pickle.loads(data)
             packets.append(content)
-            print('Received packet %s' % content['pos'])
         # re-orders the list based on the initial position of the packets
         packets.sort(key=lambda x: x['pos'])
         # if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
@@ -100,7 +98,6 @@ def send_file(file_path):
                 send_packets(packet_list)
             elif rps.decode() == 'NACK':
                 # this operation has not been successful, the client concludes that the operation is definitively over
-                print('File transfer failed')
                 break
         except error:
             # timeout error on the arrival of the acknowledgment, the server retries to obtain it
@@ -112,7 +109,6 @@ set_utils_socket(server_socket)
 server_socket.bind(('', SERVER_PORT))
 server_socket.settimeout(None)
 file_prefix = os.getcwd() + "\\serverFiles\\"
-print("The server is ready to receive.")
 
 while True:
     try:
@@ -167,7 +163,6 @@ while True:
                             break
                         # if the client declares the operation is unsuccessful, the connection is interrupted
                         elif response == 'NACK':
-                            print('Connection failed')
                             break
                     except error:
                         # timeout error, the client has to re-send the information

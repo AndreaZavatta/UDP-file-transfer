@@ -36,12 +36,10 @@ def receive_file(fn, num):
 	# tries to collect packets until the number of collected packets is equal to the original number of packets
 	while True:
 		failed_attempts = 0
-		print(num)
 		for i in range(num):
 			data = receive_message()
 			content = pickle.loads(data)
 			packets.append(content)
-			print('Received packet %s' % content['pos'])
 		# re-orders the list based on the initial position of the packets
 		packets.sort(key=lambda x: x['pos'])
 		# if all packets have arrived, then the server notifies the client and proceeds to write onto the new file
@@ -83,19 +81,21 @@ def send_number_of_packets(number):
 
 
 def send_file(file_path):
+	# creates the list of packets that must be sent to the server
 	packet_list = create_packet_list(file_path)
+	# sends the number of packets first and then the packets, one by one
 	send_number_of_packets(packet_list.__len__())
 	upload_packet_list(packet_list)
 	while True:
 		try:
+			# gets the acknowledgment from server on the completion of the operation
 			rps = receive_message()
 			if rps.decode() == 'ACK':
-				break
+				return SUCCESS_CODE
 			elif rps.decode() == 'RETRY':
 				upload_packet_list(packet_list)
 			elif rps.decode() == 'NACK':
-				print('File transfer failed')
-				break
+				return ERROR_CODE
 		except error:
 			pass
 
@@ -170,8 +170,9 @@ def put_file(file_name):
 				# if the server acknowledges the file name, then the file is sent
 				if response.decode() == file_name:
 					send_acknowledge((SERVER_NAME, SERVER_PORT))
-					send_file(file_prefix + file_name)
-					break
+					exit_status = send_file(file_prefix + file_name)
+					# the exit status is needed to display the eventual failure of the operation to the user
+					return exit_status
 				# if the server does not acknowledge the file name,
 				# then the server notifies the client and the client tries to send the file again
 				elif failed_attempts < MAX_FAILED_ATTEMPTS:
@@ -181,10 +182,9 @@ def put_file(file_name):
 				# of failed attempts then the client notifies the server and the client exits
 				else:
 					send_not_acknowledge((SERVER_NAME, SERVER_PORT))
-					print('Connection timed out while sending file')
-					break
+					return ERROR_CODE
 			# if the server does not respond, then the client tries to receive the acknowledgement again
 			except error:
 				failed_attempts += 1
 	else:
-		print('File not present on client')
+		return ERROR_CODE
