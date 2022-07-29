@@ -35,10 +35,10 @@ def get_file_list():
 
 
 @app.route('/put/', methods=['GET'])
-def put_file():
+def putFile():
 	filename = request.args.get('filename')
-	a = str(put_file(filename))
-	return str(put_file(filename))
+	a = put_file(filename)
+	return str(a)
 
 
 if __name__ == '__main__':

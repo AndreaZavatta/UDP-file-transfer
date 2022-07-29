@@ -2,6 +2,7 @@ $(document).ready(function () {
     getFileList();
 })
 
+
 $(document).on("click", ".btn-download",function () {
     var filename = $(this).closest(".card-body").find(".card-text").html();
     $.ajax({
@@ -23,8 +24,8 @@ $(document).on("click", ".btn-download",function () {
 
 $(document).on("click", ".add-file",function () {
             $.ajax({
-                'url': 'http://127.0.0.1:5000/put?filename='+document.getElementById("filePicker").files[0].name,
-                'type': 'POST',
+                'url': 'http://127.0.0.1:5000/put/?filename='+document.getElementById("filePicker").files[0].name,
+                'type': 'GET',
                 'success': function (data) {
                     if (data == "0") {
                         alert("put andato a buon fine")
@@ -70,5 +71,4 @@ function addBoxFile(filename, data) {
     div.find(".card-text").html(filename);
     div.find(".text-muted").html(data);
     $("#box-file").append(div);
-
 }
