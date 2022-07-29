@@ -1,3 +1,4 @@
+import atexit
 import subprocess
 from json import JSONEncoder
 from flask import request
@@ -37,5 +38,6 @@ def upload():
 
 
 if __name__ == '__main__':
-	subprocess.call('python server.py', shell=True)
+	p = subprocess.Popen(['python3', 'server.py'])
+	atexit.register(lambda: p.kill())
 	app.run(debug=False)

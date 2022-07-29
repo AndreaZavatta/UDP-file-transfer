@@ -104,6 +104,7 @@ def send_file(file_path):
             pass
 
 
+print("Server is running...")
 server_socket = socket(AF_INET, SOCK_DGRAM)
 set_utils_socket(server_socket)
 server_socket.bind(('', SERVER_PORT))
