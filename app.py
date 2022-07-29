@@ -23,29 +23,22 @@ def init():
 	return render_template('index.html')
 
 
-@app.route('/upload-file/', methods=['GET', 'POST'])
-def uploadFile():
-	"""contenuto = base64 del file
-    contenuto = request.form.get('contenuto')
-    message_byte = byte array del file
-    message_bytes = base64.b64decode(contenuto)
-    nomefile = request.form.get('nomefile')
-    list.append(File(nomefile, len(message_bytes), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-    """
-	nomefile = request.form.get('nomefile')
-	# upload_file(nomefile)
-	return "0"
-
-
 @app.route('/list/', methods=['GET'])
-def fileList():
+def file_list():
 	return list_files_server()
 
 
 @app.route('/get/', methods=['GET'])
-def getFileList():
+def get_file_list():
 	filename = request.args.get('filename')
 	return str(get_files(filename))
+
+
+@app.route('/put/', methods=['GET'])
+def put_file():
+	filename = request.args.get('filename')
+	a = str(put_file(filename))
+	return str(put_file(filename))
 
 
 if __name__ == '__main__':

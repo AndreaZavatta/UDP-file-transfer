@@ -1,60 +1,43 @@
 $(document).ready(function () {
     getFileList();
-
-    $(document).on("click", ".btn-download",function () {
-        var filename = $(this).closest(".card-body").find(".card-text").html();
-        $.ajax({
-            'url': 'http://127.0.0.1:5000/get?filename=' + filename,
-            'type': 'GET',
-            'success': function (data) {
-                if (data == "0") {
-                    alert("download andato a buon fine")
-                } else {
-                    alert("errore");
-                }
-            },
-            'error': function (xhr, status, error) {
-                var err = eval("(" + xhr.responseText + ")");
-                alert("errore");
-            }
-        });
-    });
 })
 
-function submitForm() {
-    const enc = new TextDecoder("utf-8");
-    const fileList = document.getElementById("filePicker").files;
-    const fileReader = new FileReader();
-    if (fileReader && fileList && fileList.length) {
-        fileReader.readAsArrayBuffer(fileList[0]);
-        fileReader.onload = function () {
-            const imageData = fileReader.result;
+$(document).on("click", ".btn-download",function () {
+    var filename = $(this).closest(".card-body").find(".card-text").html();
+    $.ajax({
+        'url': 'http://127.0.0.1:5000/get?filename=' + filename,
+        'type': 'GET',
+        'success': function (data) {
+            if (data == "0") {
+                alert("download andato a buon fine")
+            } else {
+                alert("errore");
+            }
+        },
+        'error': function (xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+            alert("errore");
+        }
+    });
+});
 
+$(document).on("click", ".add-file",function () {
             $.ajax({
-
-                'url': 'http://127.0.0.1:5000/upload-file/',
+                'url': 'http://127.0.0.1:5000/put?filename='+document.getElementById("filePicker").files[0].name,
                 'type': 'POST',
-                'data': {
-                    nomefile: document.getElementById("filePicker").files[0].name,
-                    contenuto: arrayBufferToBase64(imageData)
-                },
                 'success': function (data) {
                     if (data == "0") {
-                        getFileList();
+                        alert("put andato a buon fine")
                     } else {
                         alert("errore");
                     }
                 },
                 'error': function (xhr, status, error) {
                     var err = eval("(" + xhr.responseText + ")");
-
                     alert("errore");
                 }
             });
-
-        };
-    }
-}
+        })
 
 function getFileList() {
     $.ajax({
@@ -72,16 +55,6 @@ function getFileList() {
             alert("errore");
         }
     });
-}
-
-function arrayBufferToBase64(buffer) {
-    var binary = '';
-    var bytes = new Uint8Array(buffer);
-    var len = bytes.byteLength;
-    for ( var i = 0; i < len; i++ ) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
 }
 
 
