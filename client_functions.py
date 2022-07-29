@@ -112,7 +112,7 @@ def upload_packet_list(packet_list):
 
 def list_files():
 	client_socket.settimeout(TIMEOUT)
-	send_message((SERVER_NAME, SERVER_PORT), "list")
+	send_message((SERVER_NAME, SERVER_PORT), 'list')
 	timeouts = 0
 	# the arrival of the list may be timed out so there needs to be a check on it
 	ret = ""
@@ -129,7 +129,7 @@ def list_files():
 def get_file(file_name):
 	client_socket.settimeout(TIMEOUT)
 	# sends the command to the server
-	send_message((SERVER_NAME, SERVER_PORT), "get")
+	send_message((SERVER_NAME, SERVER_PORT), 'get')
 	# if the file already exists, the client overwrites it
 	if os.listdir(file_prefix).__contains__(file_name):
 		os.remove(file_prefix + file_name)
@@ -192,3 +192,7 @@ def put_file(file_name):
 				failed_attempts += 1
 	else:
 		return ERROR_CODE
+
+
+def close_server():
+	send_message((SERVER_NAME, SERVER_PORT), 'quit')

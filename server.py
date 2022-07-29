@@ -169,6 +169,7 @@ while True:
                         # timeout error, the client has to re-send the information
                         pass
             case 'quit':
-                server_socket.close()
+                break
     except error:
         pass
+server_socket.close()

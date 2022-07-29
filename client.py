@@ -21,6 +21,7 @@ while True:
 			put_file(message.split(' ')[1])
 		# if the command is quit, then the client exits
 		case 'quit':
+			close_server()
 			break
 		# if the command is not valid, then the client notifies the user
 		case default:

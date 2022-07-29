@@ -38,6 +38,6 @@ def upload():
 
 
 if __name__ == '__main__':
-	p = subprocess.Popen(['python3', 'server.py'])
+	p = subprocess.Popen(['python', 'server.py'])
 	atexit.register(lambda: p.kill())
 	app.run(debug=False)
