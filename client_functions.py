@@ -122,7 +122,6 @@ def list_files_server():
 	return ret
 
 
-
 def get_files(file_name):
 	client_socket.settimeout(TIMEOUT)
 	# sends the command to the server
@@ -134,30 +133,27 @@ def get_files(file_name):
 	send_message((SERVER_NAME, SERVER_PORT), file_name)
 	# waits for the server to acknowledge the file name
 	failed_attempts = 0
-	ret = "0"
 	while failed_attempts < MAX_FAILED_ATTEMPTS:
 		try:
 			response = receive_message()
 			# if the server does not acknowledge the file name or if the connection timed out,
 			# then the client exits
 			if response.decode() == 'NACK':
-				ret = "-1"
-				break
+				# error code
+				return ERROR_CODE
 			# if the server acknowledges the file name, then the client receives the file
 			elif response.decode() == 'ACK':
 				receive_file(file_prefix + file_name, receive_number_of_packets())
-				break
+				# success code
+				return SUCCESS_CODE
 			# if the server retries, then the client retries to send the file name
 			elif response.decode() == 'RETRY':
 				failed_attempts += 1
 				send_message((SERVER_NAME, SERVER_PORT), file_name)
 		except error:
 			failed_attempts += 1
-	if failed_attempts == MAX_FAILED_ATTEMPTS:
-		ret = "-1"
-	else:
-		ret = "0"
-	return ret
+	# if the maximum number of attempts has been reached, the error code must be returned
+	return ERROR_CODE
 
 
 def put_file(file_name):
@@ -192,4 +188,3 @@ def put_file(file_name):
 				failed_attempts += 1
 	else:
 		print('File not present on client')
-
