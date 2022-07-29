@@ -12,6 +12,10 @@ set_utils_socket(client_socket)
 file_prefix = os.getcwd() + "\\clientFiles\\"
 
 
+def get_client_files():
+	return os.listdir(file_prefix)
+
+
 def write_on_file(fn, packets):
 	with open(fn, 'wb') as file_io:
 		for packet in packets:
