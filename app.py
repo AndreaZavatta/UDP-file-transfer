@@ -45,7 +45,7 @@ def fileList():
 @app.route('/get/', methods=['GET'])
 def getFileList():
 	filename = request.args.get('filename')
-	return get_files(filename)
+	return str(get_files(filename))
 
 
 if __name__ == '__main__':

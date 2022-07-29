@@ -12,11 +12,11 @@ while True:
 		case 'list':
 			print(list_files_server())
 		case 'get':
-			match get_files(message.split(' ')[1]):
-				case "-1":
-					print('File not present on server or connection timed out')
-				case "0":
-					print('Connection timed out while getting file')
+			file = get_files(message.split(' ')[1])
+			if file == ERROR_CODE:
+				print('File not present on server or connection timed out')
+			else:
+				print('Connection timed out while getting file')
 		case 'put':
 			put_file(message.split(' ')[1])
 		# if the command is quit, then the client exits
