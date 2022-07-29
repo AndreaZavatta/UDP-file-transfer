@@ -18,25 +18,29 @@
 
     <title>File Manager</title>
   </head>
-  <body>
-    <div class="position-relative overflow-hidden text-center bg-secondary">
+  <body class="bg-secondary">
+    <div class="position-relative text-center div-main">
         <form action="/upload-image/" method="POST" enctype="multipart/form-data">
             <div class="col-md-5 p-lg-5 mx-auto my-5">
               <h1 class="display-4 fw-normal text-white">File Manager</h1>
-              <p class="lead fw-normal text-white">This site allow you to upload and download files</p>
+              <p class="lead fw-normal text-white">This site allows you to upload and download files</p>
                 <div class="container py-3">
-
-                  <div class="input-group">
-                    <input type="file" id="filePicker" class="form-control" >
-                  </div>
+                  <div class="btn-group">
+				  <button type="button" class="btn btn-light dropdown-toggle client-files" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				  </button>
+				  <div class="dropdown-menu dropdown-menu-right dropdown-menu-client">
+					    <button class="dropdown-item file-item d-none hide-item-client" type="button" onclick="change_dropdown_value(this)"></button>
+				  </div>
+				</div>
+	                <button type="button" class="btn btn-outline-light m-4 add-file">Add File</button>
+	                <div class="d-inline-block d-none img-loading"><img src="static/loading_icon.gif" width="45px">  </div>
                 </div>
-                <button type="button" class="btn btn-outline-light m-4 add-file">Add File</button>
             </div>
         </form>
     <div class="product-device shadow-sm d-none d-md-block"></div>
     <div class="product-device product-device-2 shadow-sm d-none d-md-block"></div>
   </div>
-    <div class="album py-5 bg-light">
+    <div class="album py-5 bg-light" style="min-height: 300px">
         <div class="container" id="file-container">
             <div class="col-md-4 d-none hide-box">
               <div class="card mb-4 box-shadow">
@@ -54,9 +58,6 @@
             </div>
               <!-- init -->
             <div class="row" id="box-file">
-
-            
-
             </div>
         </div>
           </div>

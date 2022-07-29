@@ -5,7 +5,6 @@ from flask import request
 from flask import Flask, render_template
 from client import *
 
-
 app = Flask(__name__)
 
 
@@ -35,6 +34,12 @@ def upload():
 	filename = request.args.get('filename')
 	a = put_file(filename)
 	return str(a)
+
+
+@app.route('/getclient/', methods=['GET'])
+def files_client():
+	a = get_client_files()
+	return a
 
 
 if __name__ == '__main__':
