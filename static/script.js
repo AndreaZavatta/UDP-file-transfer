@@ -32,6 +32,7 @@ $(document).on("click", ".add-file",function () {
                     } else {
                         alert("errore");
                     }
+                    refreshPage()
                 },
                 'error': function (xhr, status, error) {
                     var err = eval("(" + xhr.responseText + ")");
@@ -71,4 +72,7 @@ function addBoxFile(filename, data) {
     div.find(".card-text").html(filename);
     div.find(".text-muted").html(data);
     $("#box-file").append(div);
+}
+function refreshPage(){
+    window.location.reload();
 }
