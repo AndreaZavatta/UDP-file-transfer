@@ -3,7 +3,7 @@ import subprocess
 from json import JSONEncoder
 from flask import request
 from flask import Flask, render_template
-from client_functions import *
+from client_gui import *
 
 
 app = Flask(__name__)

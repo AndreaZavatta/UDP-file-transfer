@@ -1,4 +1,4 @@
-from client_functions import *
+from client_gui import *
 
 
 # main loop
