@@ -1,3 +1,4 @@
+import subprocess
 from json import JSONEncoder
 from flask import request
 from flask import Flask, render_template
@@ -36,4 +37,5 @@ def upload():
 
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	subprocess.call('python server.py', shell=True)
+	app.run(debug=False)
