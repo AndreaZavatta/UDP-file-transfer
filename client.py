@@ -10,9 +10,9 @@ while True:
 	match command:
 		# gets the list of files from the server and prints it
 		case 'list':
-			print(list_files_server())
+			print(list_files())
 		case 'get':
-			file = get_files(message.split(' ')[1])
+			file = get_file(message.split(' ')[1])
 			if file == ERROR_CODE:
 				print('File not present on server or connection timed out')
 			else:

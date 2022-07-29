@@ -1,14 +1,8 @@
-import base64
-import datetime
-import json
 from json import JSONEncoder
 from flask import request
 from flask import Flask, render_template
-from socket import *
-
 from client_functions import *
-from client_utils import send_message, receive_message, set_utils_socket
-from settings import *
+
 
 app = Flask(__name__)
 
@@ -24,18 +18,18 @@ def init():
 
 
 @app.route('/list/', methods=['GET'])
-def file_list():
-	return list_files_server()
+def files():
+	return list_files()
 
 
 @app.route('/get/', methods=['GET'])
-def get_file_list():
+def download():
 	filename = request.args.get('filename')
-	return str(get_files(filename))
+	return str(get_file(filename))
 
 
 @app.route('/put/', methods=['GET'])
-def putFile():
+def upload():
 	filename = request.args.get('filename')
 	a = put_file(filename)
 	return str(a)

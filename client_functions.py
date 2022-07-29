@@ -106,7 +106,7 @@ def upload_packet_list(packet_list):
 		sleep(0.1)
 
 
-def list_files_server():
+def list_files():
 	client_socket.settimeout(TIMEOUT)
 	send_message((SERVER_NAME, SERVER_PORT), "list")
 	timeouts = 0
@@ -122,7 +122,7 @@ def list_files_server():
 	return ret
 
 
-def get_files(file_name):
+def get_file(file_name):
 	client_socket.settimeout(TIMEOUT)
 	# sends the command to the server
 	send_message((SERVER_NAME, SERVER_PORT), "get")
