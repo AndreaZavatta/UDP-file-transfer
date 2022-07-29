@@ -27,7 +27,7 @@ $(document).on("click", ".btn-download",function () {
 
 $(document).on("click", ".add-file",function () {
             $.ajax({
-                'url': 'http://127.0.0.1:5000/put/?filename='+document.getElementById("filePicker").files[0].name,
+                'url': 'http://127.0.0.1:5000/put/?filename=' + document.querySelector(".client-files").innerHTML,
                 'type': 'GET',
                 'success': function (data) {
                     if (data == "0") {
