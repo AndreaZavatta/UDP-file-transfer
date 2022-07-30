@@ -126,17 +126,7 @@ def upload_packet_list(packet_list):
 def list_files():
 	client_socket.settimeout(TIMEOUT)
 	send_message((SERVER_NAME, SERVER_PORT), 'list')
-	timeouts = 0
-	# the arrival of the list may be timed out so there needs to be a check on it
-	ret = ""
-	while timeouts < MAX_FAILED_ATTEMPTS:
-		try:
-			file_list = receive_message()
-			ret = file_list.decode()
-			break
-		except error:
-			timeouts += 1
-	return ret
+	return receive_message().decode()
 
 
 def get_file(file_name):
