@@ -12,12 +12,18 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".btn-download",function () {
+        $(".img-loading").removeClass("d-none");
         var filename = $(this).closest(".card-body").find(".card-text").html();
         $.ajax({
             'url': 'http://127.0.0.1:5000/get?filename=' + filename,
             'type': 'GET',
             'success': function (data) {
-                alert(get_error_message(data));
+                $(".img-loading").addClass("d-none");
+                    setTimeout(function () {
+                    alert(get_error_message(data));
+                    reload();
+                }, 100);
+
             },
             'error': function (xhr, status, error) {
                 alert("errore");
@@ -26,7 +32,6 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".add-file",function (e) {
-        e.preventDefault();
         $(".img-loading").removeClass("d-none");
         $.ajax({
             'url': 'http://127.0.0.1:5000/put/?filename=' + document.querySelector(".client-files").innerHTML,
@@ -34,7 +39,7 @@ $(document).ready(function () {
             'success': function (data) {
                 $(".img-loading").addClass("d-none");
                     setTimeout(function () {
-                    alert(get_error_message(data))
+                    alert(get_error_message(data));
                     getFileList();
                 }, 100);
 
@@ -68,7 +73,7 @@ function getFileList() {
         success: function (ret) {
             $("#box-file").empty();
             getList(ret).forEach(function (el) {
-                    addBoxFile(el, "");
+                addBoxFile(el, "");
             });
         },
         error: function (xhr, status, error) {
@@ -108,4 +113,7 @@ function get_error_message(result){
     }else{
         return "errore";
     }
+}
+function reload(){
+    window.location.reload();
 }
