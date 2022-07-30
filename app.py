@@ -19,7 +19,7 @@ def init():
 
 
 @app.route('/list/', methods=['GET'])
-def files():
+def files_server():
 	return list_files()
 
 

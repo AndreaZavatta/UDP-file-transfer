@@ -1,6 +1,3 @@
-function set_div_height() {
-    $(".album").css("min-height", $(window).height() - $(".div-main").height() - 98);
-}
 
 $(document).ready(function () {
     getFileList();
@@ -11,6 +8,10 @@ $(document).ready(function () {
         set_div_height();
     });
 
+    /*
+    * this method takes care of the file download
+    * when the download button is pressed, the relevant file is downloaded
+    * */
     $(document).on("click", ".btn-download",function () {
         $(".img-loading").removeClass("d-none");
         var filename = $(this).closest(".card-body").find(".card-text").html();
@@ -31,6 +32,9 @@ $(document).ready(function () {
         });
     });
 
+    /*
+    * this method takes care of the file upload, after the upload is done the files on the server are displayed
+    * */
     $(document).on("click", ".add-file",function (e) {
         $(".img-loading").removeClass("d-none");
         $.ajax({
@@ -53,6 +57,11 @@ $(document).ready(function () {
 
 })
 
+/* this method calculates the height of the main div */
+function set_div_height() {
+    $(".album").css("min-height", $(window).height() - $(".div-main").height() - 98);
+}
+/* this method fills the dropdown menu with the list of file names on the client */
 function fill_dropdown_client(){
     $.ajax({
         'url': 'http://127.0.0.1:5000/getclient/',
@@ -66,32 +75,32 @@ function fill_dropdown_client(){
         }
     });
 }
+//this method displays the files on the server
 function getFileList() {
     $.ajax({
         url: 'http://127.0.0.1:5000/list/',
         type: 'GET',
         success: function (ret) {
             $("#box-file").empty();
-            getList(ret).forEach(function (el) {
-                addBoxFile(el, "");
-            });
+            getList(ret).forEach(el =>  addBoxFile(el, ""));
         },
         error: function (xhr, status, error) {
             alert("errore");
         }
     });
 }
+// this method keeps the selection on the selected file in the dropdown-menu
 function change_dropdown_value(el) {
-  var txt = el.textContent;
-   document.querySelector(".client-files").innerHTML = txt;
+   document.querySelector(".client-files").innerHTML = el.textContent;
 }
 
+//converts a string-formatted array, to a real array
 function getList(ret) {
     return ret.replaceAll("[", "").replaceAll("]", "").replaceAll("'", "").replaceAll(" ", "").split(",");
 }
 
-
-
+//this method is used to create a box given a name.
+//The box represents a file in the server
 function addBoxFile(filename, data) {
     if (filename != "") {
         let div = $(".hide-box").clone().removeClass("d-none hide-box");
@@ -101,12 +110,14 @@ function addBoxFile(filename, data) {
 }
 }
 
+//this method is used to add an item (a file in the client) in the dropdown menu
 function addDropdownItem(filename) {
     let item = $(".hide-item-client").clone().removeClass("d-none hide-item-client");
     item.html(filename)
     $(".dropdown-menu-client").append(item);
 }
 
+//this method is used to display an message from status code
 function get_error_message(result){
     if(result == "0"){
         return "successful operation";
@@ -114,6 +125,7 @@ function get_error_message(result){
         return "errore";
     }
 }
+//this method is used to reload the page
 function reload(){
     window.location.reload();
 }
