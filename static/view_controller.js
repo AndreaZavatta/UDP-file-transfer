@@ -40,7 +40,7 @@ $(document).ready(function () {
 
             },
             'error': function (xhr, status, error) {
-                alert("errore");
+                alert("error");
             }
         });
     });
