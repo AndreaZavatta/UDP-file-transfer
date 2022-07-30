@@ -178,6 +178,9 @@ while True:
                         # if the client declares the operation is unsuccessful, the connection is interrupted
                         elif response == 'NACK':
                             break
+                        # if the client decides to retry, the server has to wait for the arrival of the response again
+                        elif response == 'RETRY':
+                            pass
                     except error:
                         # timeout error, the client has to re-send the information
                         pass
