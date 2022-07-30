@@ -16,7 +16,9 @@ while True:
 			if res == ERROR_CODE:
 				print('File not present on server or connection timed out')
 		case 'put':
-			put_file(message.split(' ')[1])
+			res = put_file(message.split(' ')[1])
+			if res == ERROR_CODE:
+				print('Connection timed out')
 		# if the command is quit, then the client exits
 		case 'quit':
 			close_server()
