@@ -12,7 +12,19 @@
 
 \title{File Manager}
 
-\author{Luca Pasini, Giacomo Sirri, Andrea Zavatta}
+\author{  
+Pasini Luca\\
+\texttt{0000987673}\\
+\texttt{luca.pasini9@studio.unibo.it}
+\and
+Sirri Giacomo\\
+\texttt{0000970841}\\
+\texttt{giacomo.sirri2@studio.unibo.it}
+\and
+Zavatta Andrea\\
+\texttt{0000989124}\\
+\texttt{andrea.zavatta3@studio.unibo.it}
+}
 \date{\today}
 
 
@@ -67,7 +79,7 @@ L'architettura di alto livello dell'applicazione può essere riassunta in questo
 \section{Design dettagliato}
 
 \paragraph{GUI}
-Nella versione con GUI, all'avvio dell'applicazione la pagina HTML viene connessa con la porta locale 127.0.0.1.5000 e viene contemporaneamente lanciato il server come sotto-processo. Quest'ultimo viene anche aggiunto da codice alla lista dei sotto-processi che il processo padre (cioè l'applicazione stessa) deve "killare" quando termina; in questo modo la chiusura del server avviene in automatico, senza che l'utente debba interagire in alcun modo.
+Nella versione con GUI, all'avvio dell'applicazione la pagina HTML viene connessa con la porta all'indirizzo 127.0.0.1:5000 e viene contemporaneamente lanciato il server come sotto-processo. Quest'ultimo viene anche aggiunto da codice alla lista dei sotto-processi che il processo padre (cioè l'applicazione stessa) deve "killare" quando termina; in questo modo la chiusura del server avviene in automatico, senza che l'utente debba interagire in alcun modo.
 
 Per lo sviluppo del software è stato utilizzato Flask\footnote{\url{https://flask.palletsprojects.com/en/2.1.x/#}}, un micro-framework per Web Development, il quale permette, tra le altre cose, proprio di stabilire una connessione con una porta predefinita.
 
@@ -83,7 +95,7 @@ Ovviamente, qualora il server si trovasse su una macchina diversa dal client, il
 Il design appena descritto è rappresentato nella figura in alto nella pagina seguente.
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.5]{img/app_design.jpg}
+    \includegraphics[width=\textwidth]{img/app_design.jpg}
     \caption{Design dell'applicazione utilizzata tramite GUI}
 \end{figure}
 
@@ -95,7 +107,7 @@ Viene data all'utente la facoltà di chiudere la connessione con client e server
 Per il resto valgono le stesse scelte di design descritte precedentemente, come si può vedere in figura:
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.62]{img/cl_design.jpg}
+    \includegraphics[scale=0.7]{img/cl_design.jpg}
     \caption{Design dell'applicazione utilizzata tramite terminale}
 \end{figure}
 
@@ -109,14 +121,55 @@ In particolare, nel caso in cui il ricevente deve aspettare una messaggio testua
 
 Ciò significa che se l'arrivo di un messaggio testuale di acknowledgment viene ritardato oltre il valore del timeout, allora il mittente dovrà rispedire tale messaggio poiché il precedente viene considerato perso. Questa scelta garantisce una maggiore sicurezza nella comunicazione, anche se si pone in contrasto con i principi del protocollo UDP. 
 
-Al contrario, l'arrivo dei pacchetti non è soggetto a timeout, quindi se un pacchetto viene perso il ricevente rimane bloccato ad aspettarlo, entrando in deadlock. Sebbene questa situazione sia tutt'altro che ideale, si è deciso di aderire al protocollo UDP standard e di supporre perciò che tutti i pacchetti arrivino correttamente a destinazione.
+Al contrario, l'arrivo dei pacchetti non è soggetto a timeout, quindi se un pacchetto viene perso il ricevente rimane bloccato ad aspettarlo, entrando in deadlock. Sebbene questa situazione sia tutt'altro che ideale, si è deciso per semplicità di supporre che tutti i pacchetti arrivino correttamente a destinazione.
 
 \subsection{List}
+Sotto l'aspetto implementativo l'operazione list è di gran lunga la più semplice. Il client invia il comando al server e aspetta di ricevere la lista di file in formato testuale. Il server, tramite la funzione di libreria \textit{os.listdir(path)} ottiene una lista di file e, dopo aver convertito la lista in stringa, invia il risultato al client.
+
+In contrasto con quanto affermato nella sezione precedente, non è presente alcun timeout sull'arrivo della lista di file, nonostante il messaggio sia a tutti gli effetti di tipo testuale.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.55]{img/list.jpg}
+    \caption{Diagramma di sequenza dell'operazione list}
+\end{figure}
 
 \subsection{Get}
+Prima di iniziare l'operazione vera e propria di download di un file dal server è necessario verificare che tale file sia presente nel server attraverso un controllo sul nome. Se il client possiede già un file con nome uguale a quello richiesto, il file viene comunque scaricato dal server e il file omonimo posseduto dal client viene sovrascritto, anche nel caso in cui il contenuto dei due file fosse identico.
+
+Il server una volta ottenuto il nome del file richiesto dal client verifica se possiede un file con quel nome. In caso affermativo ritorna un messaggio di 'ACK' (acknowledgment) al client e poi spedisce il file desiderato, mentre in caso contrario manda un messaggio di 'NACK' (not acknowledgment). Se il server non ha ricevuto il nome del file perché è andato in timeout, allora lo chiede nuovamente al client tramite il messaggio 'RETRY'. \MakeUppercase{è} stato fissato un numero massimo di tentativi che il server ha per ottenere il nome del file, terminati i quali l'operazione viene dichiarata conclusa con esito negativo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.55]{img/get.jpg}
+    \caption{Diagramma di sequenza dell'operazione get nel caso in cui la ricezione del nome del file da parte del server vada subito a buon fine}
+\end{figure}
 
 \subsection{Put}
+L'operazione di put è piuttosto simile nel suo procedimento all'operazione di get appena descritta. Ovviamente, in questo caso è il client che deve verificare di possedere il file di cui fare l'upload.
 
+Una differenza rispetto alla get è che quando il server ottiene il nome del file, esso re-invia il nome al client, che ne verifica la validità. In altre parole, il client controlla che il nome ottenuto dal server sia effettivamente quello che aveva spedito, così da evitare errori nel nome del file creato sul server. Se quest'ultimo possiede già un file omonimo del file di cui il client vuole fare l'upload, allora tale file viene eliminato.
+
+Dopo questi controlli preliminari, il client spedisce il file al server.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.55]{img/put.jpg}
+    \caption{Diagramma di sequenza dell'operazione put nel caso in cui il nome ottenuto dal server sia lo uguale a quello inviato dal client}
+\end{figure}
+
+\subsection{Trasferimento di un file}
+L'operazione di trasferimento di un file è stata ovviamente quella più delicata ai fini della buona riuscita dell'applicazione.
+Ogni pacchetto da inviare è costituito da un campo \textit{content} che contiene i dati, un campo \textit{pos} che contiene la posizione del pacchetto nel file e un campo \textit{checksum} che contiene un valore di hash del pacchetto stesso.
+Inizialmente viene creata una lista di pacchetti che il mittente deve spedire, ognuno formato dai campi di cui sopra. Poi viene spedito il numero di pacchetti al destinatario e infine, quando quest'ultimo conferma la ricezione del numero di pacchetti, il mittente invia il file un pacchetto alla volta.
+
+Dal canto suo, il destinatario deve verificare che ogni pacchetto che arriva sia integro (verificando la validità del campo checksum) e poi quando tutti i pacchetti sono arrivati deve controllare che non ne sia andato perso nessuno. In base a queste verifiche il destinatario può accettare il contenuto ricevuto e quindi scriverlo sul nuovo file, oppure richiedere che gli venga inviato di nuovo (anche qui c'è un limite al numero di tentativi).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.55]{img/transfer.jpg}
+    \caption{Diagramma di sequenza del trasferimento di un file}
+\end{figure}
 
 \chapter{Sviluppo}
 
@@ -130,10 +183,11 @@ Dopo aver deciso di comune accordo il design di base e le librerie da utilizzare
 Una decisione di gruppo importante è stata quella di dotare l'utente di due distinti metodi d'interazione con l'applicazione. Questa scelta è maturata dall'aver sviluppato in maniera quasi del tutto indipendente la parte di modello e quella di view.
 La gestione del trasferimento di file tra client e server è stata infatti pensata (e testata) per input provenienti dalla riga di comando e quando si è andati a collegare la view a questa parte di model si è scelto di mantenere la possibilità di usare i comandi testuali.
 
-\section{Utilizzo di DVCS}
+\paragraph{Utilizzo di DVCS}
 Per semplificare il lavoro in team si è fatto uso di Git come DVCS. Il workflow è stato quasi totalmente lineare, in quanto tutti i membri hanno sviluppato la propria parte di software sul branch master.
 
 \chapter{Guida utente}
+In entrambi i metodi di esecuzione è necessario avere una connessione a Internet attiva, poiché i fogli di stile (.css) vengono scaricati dalla Rete tramite Bootstrap all'avvio dell'applicazione.
 
 \section{Terminale}
 Dalla directory di progetto, lanciare da terminale Bash il comando '\textit{pyhton server.py}'. Successivamente, eseguire da un altro terminale l'applicazione tramite l'invio del comando '\textit{python app\_cl.py}'.
