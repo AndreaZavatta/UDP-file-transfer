@@ -1,5 +1,4 @@
 \documentclass[a4paper,12pt]{report}
-
 \usepackage{alltt, fancyvrb, url}
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
@@ -8,7 +7,6 @@
 \usepackage{hyperref}
 \usepackage{array}
 
-% Questo commentalo se vuoi scrivere in inglese.
 \usepackage[italian]{babel}
 \usepackage[italian]{cleveref}
 
@@ -26,8 +24,157 @@
 
 \chapter{Analisi}
 
-\section{Descrizione}
+File Manager è un applicazione client-server per la gestione del trasferimento di file in locale basata su UDP, un protocollo di rete del livello di trasporto che si caratterizza per essere connectionless e ad alta velocità.
+L'applicazione deve permettere all'utente di caricare e scaricare file di qualsiasi formato dal server, sia attraverso un'interfaccia user-friendly sia tramite input a riga di comando.
 
-File Manager
+\section{Requisiti}
+Per completezza, si riportano in questo paragrafo le specifiche delineate nel file "tracce Progetti di fine corso 2021\_2022".
+
+La comunicazione tra client e server deve avvenire tramite un opportuno protocollo. Il protocollo di comunicazione deve prevedere lo scambio di due tipi di messaggi: 
+\begin{itemize}
+    \item messaggi di comando: vengono inviati dal client al server per richiedere l’esecuzione delle diverse operazioni;
+    \item messaggi di risposta: vengono inviati dal server al client in risposta ad un comando con l’esito dell’operazione.
+\end{itemize}
+In particolare, server e client dovranno possedere le seguenti funzionalità.
+\paragraph{}
+\textbf{Server}:
+\begin{itemize}
+    \item l’invio al client richiedente del messaggio di risposta al comando \textit{list}, il quale dovrà contenere la file list, ovvero la lista dei nomi dei file disponibili per la condivisione;
+    \item l’invio del messaggio di risposta al comando \textit{get} contenente il file richiesto, se presente, o un opportuno messaggio di errore;
+    \item la ricezione di un messaggio \textit{put} contenente il file da caricare sul server e l’invio di un messaggio di risposta con l’esito dell’operazione.
+\end{itemize}
+\paragraph{}
+\textbf{Client}:
+\begin{itemize}
+    \item l’invio del messaggio \textit{list} per richiedere la lista dei nomi dei file disponibili;
+    \item l’invio del messaggio \textit{get} per ottenere un file e la conseguente ricezione dello stesso, compresa la gestione dell’eventuale errore;
+    \item l’invio del messaggio \textit{put} per effettuare l’upload di un file sul server e la ricezione del messaggio di risposta con l’esito dell’operazione.
+\end{itemize}
+
+\chapter{Design}
+Il design dell'applicazione tiene conto sia delle caratteristiche del protocollo UDP sia dei requisiti sopra dettagliati. 
+
+\section{Architettura generale}
+Si è scelto di utilizzare il pattern architetturale MVC, così da mantenere indipendente il model rispetto alla view. Questa scelta si è rivelata cruciale per permettere all'utente di disporre di due interfacce, una grafica e una a riga di comando.
+
+L'architettura di alto livello dell'applicazione può essere riassunta in questo schema:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/arch.jpg}
+    \caption{Architettura MVC}
+\end{figure}
+
+\section{Design dettagliato}
+
+\paragraph{GUI}
+Nella versione con GUI, all'avvio dell'applicazione la pagina HTML viene connessa con la porta locale 127.0.0.1.5000 e viene contemporaneamente lanciato il server come sotto-processo. Quest'ultimo viene anche aggiunto da codice alla lista dei sotto-processi che il processo padre (cioè l'applicazione stessa) deve "killare" quando termina; in questo modo la chiusura del server avviene in automatico, senza che l'utente debba interagire in alcun modo.
+
+Per lo sviluppo del software è stato utilizzato Flask\footnote{\url{https://flask.palletsprojects.com/en/2.1.x/#}}, un micro-framework per Web Development, il quale permette, tra le altre cose, proprio di stabilire una connessione con una porta predefinita.
+
+In questa versione dell'applicazione, l'utente interagisce con la pagina HTML (ascoltata e aggiornata dal sorgente javascript), che è collegata all'applicazione tramite il controller, rappresentato dallo script \textit{app.py}. In sostanza, la pressione di un pulsante da parte dell'utente scatena un interrupt software che viene gestito da un'opportuna funzione del controller, la quale inoltra la richiesta dell'utente alla specifica funzione del model in grado di gestirla. 
+Il controller comunica solo con il client, il quale a sua volta interagisce con il server. 
+
+Client e server sono stati scorporati in due file ciascuno, uno principale e uno di \textit{utility}, in un'ottica vicina al paradigma ad oggetti.
+
+Alcune costanti particolarmente critiche per il corretto funzionamento dell'applicazione sono state dichiarate nel file \textit{settings.py}, utilizzato sia dal server che dal client. Tra queste costanti possiamo citare SERVER\_PORT, che stabilisce il numero della porta sulla quale verrà connesso il server e BUFFER\_SIZE, la quale serve a specificare la dimensione dei \textit{socket} utilizzati da client e server.
+
+Ovviamente, qualora il server si trovasse su una macchina diversa dal client, il file condiviso settings.py dovrebbe essere copiato nella macchina dove viene eseguito il server.
+
+Il design appena descritto è rappresentato nella figura in alto nella pagina seguente.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{img/app_design.jpg}
+    \caption{Design dell'applicazione utilizzata tramite GUI}
+\end{figure}
+
+\paragraph{Terminale} 
+L'utilizzo dell'applicativo da terminale è supportato dal controller \textit{app\_cl.py}, progettato specificatamente per ricevere input da linea di comando. Tale controller invia al model il nome del comando digitato dall'utente ed eventualmente il file su cui operare.
+
+Viene data all'utente la facoltà di chiudere la connessione con client e server tramite l'invio del comando \textit{quit}.
+
+Per il resto valgono le stesse scelte di design descritte precedentemente, come si può vedere in figura:
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.62]{img/cl_design.jpg}
+    \caption{Design dell'applicazione utilizzata tramite terminale}
+\end{figure}
+
+\section{Descrizione delle operazioni}
+
+\subsection{Gestione dei timeout}
+Una problematica piuttosto complessa da gestire è stata l'implementazione del timeout, ossia il tempo massimo di attesa dell'arrivo di un segnale da parte del ricevente. 
+
+Si è deciso di impostare il tempo ad un valore predefinito che dipende dal tipo di comunicazione in corso tra client e server.
+In particolare, nel caso in cui il ricevente deve aspettare una messaggio testuale dal mittente il timeout è impostato a None (cioè 0 secondi), mentre nel caso in cui il ricevente deve aspettare l'arrivo dei pacchetti contenenti i dati del file da trasferire il timeout è imposto a 2 secondi.
+
+Ciò significa che se l'arrivo di un messaggio testuale di acknowledgment viene ritardato oltre il valore del timeout, allora il mittente dovrà rispedire tale messaggio poiché il precedente viene considerato perso. Questa scelta garantisce una maggiore sicurezza nella comunicazione, anche se si pone in contrasto con i principi del protocollo UDP. 
+
+Al contrario, l'arrivo dei pacchetti non è soggetto a timeout, quindi se un pacchetto viene perso il ricevente rimane bloccato ad aspettarlo, entrando in deadlock. Sebbene questa situazione sia tutt'altro che ideale, si è deciso di aderire al protocollo UDP standard e di supporre perciò che tutti i pacchetti arrivino correttamente a destinazione.
+
+\subsection{List}
+
+\subsection{Get}
+
+\subsection{Put}
+
+
+\chapter{Sviluppo}
+
+\section{Metodo di lavoro}
+Dopo aver deciso di comune accordo il design di base e le librerie da utilizzare nello sviluppo del codice, i membri del gruppo si sono divisi i compiti e hanno lavorato ad una specifica componente del software. In particolare:
+\begin{itemize}
+    \item \textbf{Pasini} e \textbf{Sirri} hanno sviluppato client e server, con Pasini che si è occupato prevalentemente del client e Sirri del server. C'è stata comunque un'interazione continua, che ha permesso di uniformare le scelte implementative e di risolvere i problemi più difficili.  
+    \item \textbf{Zavatta} si è occupato della parte di view, implementando il file HTML che definisce gli elementi grafici e lo script javascript che ne esegue l'aggiornamento quando l'utente compie una operazione. Inoltre, ha anche supportato lo sviluppo del model, fattorizzando opportunamente le operazioni del client in modo tale da renderle disponibili alla view.
+\end{itemize}
+
+Una decisione di gruppo importante è stata quella di dotare l'utente di due distinti metodi d'interazione con l'applicazione. Questa scelta è maturata dall'aver sviluppato in maniera quasi del tutto indipendente la parte di modello e quella di view.
+La gestione del trasferimento di file tra client e server è stata infatti pensata (e testata) per input provenienti dalla riga di comando e quando si è andati a collegare la view a questa parte di model si è scelto di mantenere la possibilità di usare i comandi testuali.
+
+\section{Utilizzo di DVCS}
+Per semplificare il lavoro in team si è fatto uso di Git come DVCS. Il workflow è stato quasi totalmente lineare, in quanto tutti i membri hanno sviluppato la propria parte di software sul branch master.
+
+\chapter{Guida utente}
+
+\section{Terminale}
+Dalla directory di progetto, lanciare da terminale Bash il comando '\textit{pyhton server.py}'. Successivamente, eseguire da un altro terminale l'applicazione tramite l'invio del comando '\textit{python app\_cl.py}'.
+
+Il procedimento è andato a buon fine se nel terminale in cui è stata lanciata l'applicazione compare questo messaggio:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/terminale.jpg}
+\end{figure}
+
+Dopo aver digitato il comando, è necessario attendere che ricompaia il messaggio di richiesta di input, in quanto questo è il segnale che l'applicazione ha terminato di gestire la richiesta precedente.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/terminale_1.jpg}
+\end{figure}
+
+Per terminare l'applicazione digitare il comando \textit{quit} nella command line e premere invio. Questa operazione provoca anche la chiusura del server:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/terminale_2.jpg}
+\end{figure}
+
+\section{Pagina HTML}
+Lanciare il comando '\textit{python app.py}' in un terminale aperto nella directory di progetto. L'esecuzione di questo comando avvia automaticamente il server e produce l'output sottostante:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/gui.jpg}
+\end{figure}
+
+Copiare l'indirizzo che si trova nell'ultima riga dell'output nella barra di ricerca di un qualsiasi browser e premere invio. Se tutto ha funzionato correttamente compare ora l'interfaccia grafica con cui poter interagire. I file presenti al momento sul server si trovano nella barra in basso:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/gui_1.jpg}
+\end{figure}
+
+I file posseduti dal client si ottengono cliccando sulla freccia a fianco del pulsante "Add file".
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.8]{img/gui_2.jpg}
+\end{figure}
+
+Per terminare definitivamente l'applicazione non è sufficiente chiudere la pagina HTML dal browser, poiché si deve prima terminare il processo da riga di comando.
 
 \end{document}
