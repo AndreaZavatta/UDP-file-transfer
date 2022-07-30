@@ -50,7 +50,6 @@ $(document).ready(function () {
             },
             'error': function (xhr, status, error) {
                 $(".img-loading").addClass("d-none");
-                var err = eval("(" + xhr.responseText + ")");
                 alert("errore");
             }
         });
@@ -68,7 +67,6 @@ function fill_dropdown_client(){
             list.forEach(x => addDropdownItem(x))
         },
         'error': function (xhr, status, error) {
-            var err = eval("(" + xhr.responseText + ")");
             alert("errore");
         }
     });
@@ -93,19 +91,10 @@ function getFileList() {
             });
         },
         error: function (xhr, status, error) {
-            var err = eval("(" + xhr.responseText + ")");
             alert("errore");
         }
     });
 }
-
-
-function addFile() {
-    const filePiecker = document.getElementById("filePicker");
-    const name = filePiecker.files.item(0).name;
-    $("#file-container").innerHTML += $("#box-file").clone();
-}
-
 
 function addBoxFile(filename, data) {
     let div = $(".hide-box").clone().removeClass("d-none hide-box");
@@ -118,7 +107,4 @@ function addDropdownItem(filename) {
     let item = $(".hide-item-client").clone().removeClass("d-none hide-item-client");
     item.html(filename)
     $(".dropdown-menu-client").append(item);
-}
-function refreshPage(){
-    window.location.reload();
 }
