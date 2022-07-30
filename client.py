@@ -124,7 +124,7 @@ def upload_packet_list(packet_list):
 
 
 def list_files():
-	client_socket.settimeout(TIMEOUT)
+	client_socket.settimeout(None)
 	send_message((SERVER_NAME, SERVER_PORT), 'list')
 	return receive_message().decode()
 
