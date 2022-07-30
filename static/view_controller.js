@@ -3,6 +3,19 @@ $(document).ready(function () {
     getFileList();
     fill_dropdown_client();
     set_div_height();
+    
+
+    //on change of the dropdown menu, enable the add button
+    $(".client-files").on('DOMSubtreeModified', function(){
+        if($(this).html != ""){
+            $(".add-file").removeClass("disabled");
+        }else {
+            $(".add-file").addClass("disabled");
+        }
+    });
+
+
+
 
     $(window).resize(function () {
         set_div_height();
