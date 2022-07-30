@@ -160,8 +160,13 @@ Dopo questi controlli preliminari, il client spedisce il file al server.
 
 \subsection{Trasferimento di un file}
 L'operazione di trasferimento di un file è stata ovviamente quella più delicata ai fini della buona riuscita dell'applicazione.
-Ogni pacchetto da inviare è costituito da un campo \textit{content} che contiene i dati, un campo \textit{pos} che contiene la posizione del pacchetto nel file e un campo \textit{checksum} che contiene un valore di hash del pacchetto stesso.
-Inizialmente viene creata una lista di pacchetti che il mittente deve spedire, ognuno formato dai campi di cui sopra. Poi viene spedito il numero di pacchetti al destinatario e infine, quando quest'ultimo conferma la ricezione del numero di pacchetti, il mittente invia il file un pacchetto alla volta.
+Inizialmente viene creata una lista di pacchetti che il mittente deve spedire, ognuno formato da questi campi: 
+\begin{itemize}
+    \item \textit{content}, che contiene i dati letti dal file;
+    \item \textit{pos}, che contiene la posizione del pacchetto nella lista di pacchetti;
+    \item \textit{checksum}, che contiene una chiave hash che identifica univocamente il pacchetto stesso.
+\end{itemize}
+Successivamente viene spedito il numero di pacchetti al destinatario e infine, quando quest'ultimo conferma la ricezione del numero di pacchetti, il mittente invia il file un pacchetto alla volta.
 
 Dal canto suo, il destinatario deve verificare che ogni pacchetto che arriva sia integro (verificando la validità del campo checksum) e poi quando tutti i pacchetti sono arrivati deve controllare che non ne sia andato perso nessuno. In base a queste verifiche il destinatario può accettare il contenuto ricevuto e quindi scriverlo sul nuovo file, oppure richiedere che gli venga inviato di nuovo (anche qui c'è un limite al numero di tentativi).
 
