@@ -17,14 +17,9 @@ $(document).ready(function () {
             'url': 'http://127.0.0.1:5000/get?filename=' + filename,
             'type': 'GET',
             'success': function (data) {
-                if (data == "0") {
-                    alert("download andato a buon fine")
-                } else {
-                    alert("errore");
-                }
+                alert(get_error_message(data));
             },
             'error': function (xhr, status, error) {
-                var err = eval("(" + xhr.responseText + ")");
                 alert("errore");
             }
         });
@@ -38,12 +33,8 @@ $(document).ready(function () {
             'type': 'GET',
             'success': function (data) {
                 $(".img-loading").addClass("d-none");
-                setTimeout(function () {
-                    if (data == "0") {
-                        alert("put andato a buon fine")
-                    } else {
-                        alert("errore");
-                    }
+                    setTimeout(function () {
+                    alert(get_error_message(data))
                     getFileList();
                 }, 100);
 
@@ -57,13 +48,12 @@ $(document).ready(function () {
 
 })
 
-
 function fill_dropdown_client(){
     $.ajax({
         'url': 'http://127.0.0.1:5000/getclient/',
         'type': 'GET',
         'success': function (data) {
-            var list = data.replaceAll("[","").replaceAll("]","").replaceAll("'","").replaceAll(" ","").split(",");
+            var list = getList(data);
             list.forEach(x => addDropdownItem(x))
         },
         'error': function (xhr, status, error) {
@@ -71,23 +61,14 @@ function fill_dropdown_client(){
         }
     });
 }
-
-function change_dropdown_value(el) {
-  var txt = el.textContent;
-   document.querySelector(".client-files").innerHTML = txt;
-}
-
 function getFileList() {
     $.ajax({
         url: 'http://127.0.0.1:5000/list/',
         type: 'GET',
         success: function (ret) {
             $("#box-file").empty();
-            var list = ret.replaceAll("[","").replaceAll("]","").replaceAll("'","").replaceAll(" ","").split(",");
-            list.forEach(function (el) {
-                if(el != "") {
+            getList(ret).forEach(function (el) {
                     addBoxFile(el, "");
-                }
             });
         },
         error: function (xhr, status, error) {
@@ -95,16 +76,36 @@ function getFileList() {
         }
     });
 }
+function change_dropdown_value(el) {
+  var txt = el.textContent;
+   document.querySelector(".client-files").innerHTML = txt;
+}
+
+function getList(ret) {
+    return ret.replaceAll("[", "").replaceAll("]", "").replaceAll("'", "").replaceAll(" ", "").split(",");
+}
+
+
 
 function addBoxFile(filename, data) {
-    let div = $(".hide-box").clone().removeClass("d-none hide-box");
-    div.find(".card-text").html(filename);
-    div.find(".text-muted").html(data);
-    $("#box-file").append(div);
+    if (filename != "") {
+        let div = $(".hide-box").clone().removeClass("d-none hide-box");
+        div.find(".card-text").html(filename);
+        div.find(".text-muted").html(data);
+        $("#box-file").append(div);
+}
 }
 
 function addDropdownItem(filename) {
     let item = $(".hide-item-client").clone().removeClass("d-none hide-item-client");
     item.html(filename)
     $(".dropdown-menu-client").append(item);
+}
+
+function get_error_message(result){
+    if(result == "0"){
+        return "successful operation";
+    }else{
+        return "errore";
+    }
 }
